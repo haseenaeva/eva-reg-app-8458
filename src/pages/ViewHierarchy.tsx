@@ -3,18 +3,65 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, TreePine, Loader2 } from "lucide-react";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { ArrowLeft, TreePine, Loader2, Edit, Trash2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
-import { EnhancedOrganizationChart } from "@/components/EnhancedOrganizationChart";
+import { HorizontalOrganizationChart } from "@/components/HorizontalOrganizationChart";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 const ViewHierarchy = () => {
   const [selectedPanchayath, setSelectedPanchayath] = useState<string>('');
-  const { panchayaths, agents, isLoading } = useSupabaseHierarchy();
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [panchayathToDelete, setPanchayathToDelete] = useState<string>('');
+  const { panchayaths, agents, isLoading, refetch } = useSupabaseHierarchy();
+  const { toast } = useToast();
 
   const selectedPanchayathData = panchayaths.find(p => p.id === selectedPanchayath);
   const selectedPanchayathAgents = selectedPanchayath ? 
     agents.filter(agent => agent.panchayath_id === selectedPanchayath) : [];
+
+  const deletePanchayath = async (panchayathId: string) => {
+    try {
+      // First delete all agents in this panchayath
+      const { error: agentsError } = await supabase
+        .from('agents')
+        .delete()
+        .eq('panchayath_id', panchayathId);
+
+      if (agentsError) throw agentsError;
+
+      // Then delete the panchayath
+      const { error: panchayathError } = await supabase
+        .from('panchayaths')
+        .delete()
+        .eq('id', panchayathId);
+
+      if (panchayathError) throw panchayathError;
+
+      toast({
+        title: "Success",
+        description: "Panchayath deleted successfully",
+      });
+      
+      // Reset selection if deleted panchayath was selected
+      if (selectedPanchayath === panchayathId) {
+        setSelectedPanchayath('');
+      }
+      
+      refetch();
+      setDeleteDialogOpen(false);
+      setPanchayathToDelete('');
+    } catch (error) {
+      console.error('Error deleting panchayath:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete panchayath",
+        variant: "destructive",
+      });
+    }
+  };
 
   if (isLoading) {
     return (
@@ -73,13 +120,56 @@ const ViewHierarchy = () => {
           </CardContent>
         </Card>
 
+        {/* Panchayaths Management */}
+        {panchayaths.length > 0 && (
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle>Manage Panchayaths ({panchayaths.length})</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4">
+                {panchayaths.map((panchayath) => (
+                  <div key={panchayath.id} className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm">
+                    <div>
+                      <h3 className="font-medium">{panchayath.name}</h3>
+                      <p className="text-sm text-gray-600">{panchayath.district}, {panchayath.state}</p>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <span className="text-sm text-gray-500">
+                        {agents.filter(a => a.panchayath_id === panchayath.id).length} agents
+                      </span>
+                      <div className="flex gap-2">
+                        <Button variant="outline" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          size="sm"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          onClick={() => {
+                            setPanchayathToDelete(panchayath.id);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        )}
+
         {selectedPanchayath && selectedPanchayathData && (
           <Card>
             <CardContent className="p-6">
-              <EnhancedOrganizationChart 
+              <HorizontalOrganizationChart 
                 panchayathId={selectedPanchayath}
                 agents={selectedPanchayathAgents}
                 panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
+                onRefresh={refetch}
               />
             </CardContent>
           </Card>
@@ -99,6 +189,29 @@ const ViewHierarchy = () => {
             </CardContent>
           </Card>
         )}
+
+        {/* Delete Panchayath Confirmation Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Panchayath</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this panchayath? This will also delete all agents associated with it. This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                variant="destructive" 
+                onClick={() => deletePanchayath(panchayathToDelete)}
+              >
+                Delete Panchayath
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
