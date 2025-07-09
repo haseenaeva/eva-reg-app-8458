@@ -3,16 +3,33 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, TreePine } from "lucide-react";
+import { ArrowLeft, TreePine, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
-import { useHierarchyStore } from "@/hooks/useHierarchyStore";
-import { OrganizationChart } from "@/components/OrganizationChart";
+import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
+import { EnhancedOrganizationChart } from "@/components/EnhancedOrganizationChart";
 
 const ViewHierarchy = () => {
   const [selectedPanchayath, setSelectedPanchayath] = useState<string>('');
-  const { data } = useHierarchyStore();
+  const { panchayaths, agents, isLoading } = useSupabaseHierarchy();
 
-  const selectedPanchayathData = data.panchayaths.find(p => p.id === selectedPanchayath);
+  const selectedPanchayathData = panchayaths.find(p => p.id === selectedPanchayath);
+  const selectedPanchayathAgents = selectedPanchayath ? 
+    agents.filter(agent => agent.panchayath_id === selectedPanchayath) : [];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-blue-600 mx-auto mb-4" />
+              <p className="text-gray-600">Loading hierarchy data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
@@ -42,10 +59,10 @@ const ViewHierarchy = () => {
                 <SelectValue placeholder="Choose a panchayath to view hierarchy" />
               </SelectTrigger>
               <SelectContent>
-                {data.panchayaths.length === 0 ? (
+                {panchayaths.length === 0 ? (
                   <SelectItem value="none" disabled>No panchayaths available</SelectItem>
                 ) : (
-                  data.panchayaths.map((panchayath) => (
+                  panchayaths.map((panchayath) => (
                     <SelectItem key={panchayath.id} value={panchayath.id}>
                       {panchayath.name} - {panchayath.district}, {panchayath.state}
                     </SelectItem>
@@ -58,21 +75,17 @@ const ViewHierarchy = () => {
 
         {selectedPanchayath && selectedPanchayathData && (
           <Card>
-            <CardHeader>
-              <CardTitle>
-                Organization Chart - {selectedPanchayathData.name}
-              </CardTitle>
-              <CardDescription>
-                {selectedPanchayathData.district}, {selectedPanchayathData.state}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <OrganizationChart panchayathId={selectedPanchayath} />
+            <CardContent className="p-6">
+              <EnhancedOrganizationChart 
+                panchayathId={selectedPanchayath}
+                agents={selectedPanchayathAgents}
+                panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
+              />
             </CardContent>
           </Card>
         )}
 
-        {data.panchayaths.length === 0 && (
+        {panchayaths.length === 0 && (
           <Card>
             <CardContent className="text-center py-12">
               <TreePine className="h-16 w-16 text-gray-400 mx-auto mb-4" />

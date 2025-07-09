@@ -2,15 +2,30 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Plus, Building, Users } from "lucide-react";
+import { ArrowLeft, Plus, Building, Users, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AddPanchayathForm } from "@/components/AddPanchayathForm";
 import { AddAgentForm } from "@/components/AddAgentForm";
-import { useHierarchyStore } from "@/hooks/useHierarchyStore";
+import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
 
 const AddAgents = () => {
   const [activeTab, setActiveTab] = useState<'panchayath' | 'agent'>('panchayath');
-  const { data } = useHierarchyStore();
+  const { panchayaths, agents, isLoading } = useSupabaseHierarchy();
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-center py-20">
+            <div className="text-center">
+              <Loader2 className="h-8 w-8 animate-spin text-green-600 mx-auto mb-4" />
+              <p className="text-gray-600">Loading data...</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-emerald-100 p-6">
@@ -84,21 +99,21 @@ const AddAgents = () => {
           </CardContent>
         </Card>
 
-        {data.panchayaths.length > 0 && (
+        {panchayaths.length > 0 && (
           <Card className="mt-8">
             <CardHeader>
-              <CardTitle>Existing Panchayaths ({data.panchayaths.length})</CardTitle>
+              <CardTitle>Existing Panchayaths ({panchayaths.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
-                {data.panchayaths.map((panchayath) => (
-                  <div key={panchayath.id} className="flex items-center justify-between p-4 border rounded-lg">
+                {panchayaths.map((panchayath) => (
+                  <div key={panchayath.id} className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm">
                     <div>
                       <h3 className="font-medium">{panchayath.name}</h3>
                       <p className="text-sm text-gray-600">{panchayath.district}, {panchayath.state}</p>
                     </div>
                     <div className="text-sm text-gray-500">
-                      {data.agents.filter(a => a.panchayathId === panchayath.id).length} agents
+                      {agents.filter(a => a.panchayath_id === panchayath.id).length} agents
                     </div>
                   </div>
                 ))}
