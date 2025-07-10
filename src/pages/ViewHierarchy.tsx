@@ -65,7 +65,7 @@ const ViewHierarchy = () => {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
+      <div className="min-h-screen bg-white p-6">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-center py-20">
             <div className="text-center">
@@ -79,7 +79,7 @@ const ViewHierarchy = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-cyan-100 p-6">
+    <div className="min-h-screen bg-white p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
           <Link to="/">
@@ -95,7 +95,7 @@ const ViewHierarchy = () => {
           <p className="text-gray-600">Select a panchayath to view its organizational structure</p>
         </div>
 
-        <Card className="mb-8">
+        <Card className="mb-8 bg-white border shadow-sm">
           <CardHeader>
             <CardTitle>Select Panchayath</CardTitle>
             <CardDescription>Choose a panchayath to view its complete hierarchy</CardDescription>
@@ -122,16 +122,16 @@ const ViewHierarchy = () => {
 
         {/* Panchayaths Management */}
         {panchayaths.length > 0 && (
-          <Card className="mb-8">
+          <Card className="mb-8 bg-white border shadow-sm">
             <CardHeader>
               <CardTitle>Manage Panchayaths ({panchayaths.length})</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4">
                 {panchayaths.map((panchayath) => (
-                  <div key={panchayath.id} className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm">
+                  <div key={panchayath.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
                     <div>
-                      <h3 className="font-medium">{panchayath.name}</h3>
+                      <h3 className="font-medium text-gray-900">{panchayath.name}</h3>
                       <p className="text-sm text-gray-600">{panchayath.district}, {panchayath.state}</p>
                     </div>
                     <div className="flex items-center gap-4">
@@ -145,7 +145,7 @@ const ViewHierarchy = () => {
                         <Button 
                           variant="outline" 
                           size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
                           onClick={() => {
                             setPanchayathToDelete(panchayath.id);
                             setDeleteDialogOpen(true);
@@ -163,7 +163,7 @@ const ViewHierarchy = () => {
         )}
 
         {selectedPanchayath && selectedPanchayathData && (
-          <Card>
+          <Card className="bg-white border shadow-sm">
             <CardContent className="p-6">
               <HorizontalOrganizationChart 
                 panchayathId={selectedPanchayath}
@@ -176,7 +176,7 @@ const ViewHierarchy = () => {
         )}
 
         {panchayaths.length === 0 && (
-          <Card>
+          <Card className="bg-white border shadow-sm">
             <CardContent className="text-center py-12">
               <TreePine className="h-16 w-16 text-gray-400 mx-auto mb-4" />
               <h3 className="text-lg font-medium text-gray-900 mb-2">No Panchayaths Found</h3>
