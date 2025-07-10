@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Mail, Phone, Edit, Trash2, Plus, ZoomIn, ZoomOut, ChevronDown, ChevronRight, UserPlus, List, Workflow, Eye } from "lucide-react";
+import { User, Mail, Phone, Edit, Trash2, Plus, ZoomIn, ZoomOut, ChevronDown, ChevronUp, UserPlus, List, Workflow, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -21,6 +21,40 @@ interface HorizontalOrganizationChartProps {
 interface ExpandedNodes {
   [key: string]: boolean;
 }
+
+// Color schemes for different supervisors and their subordinates
+const supervisorColors = [
+  {
+    supervisor: 'bg-yellow-200 border-yellow-300 text-yellow-800',
+    groupLeader: 'bg-yellow-100 border-yellow-200 text-yellow-700',
+    pro: 'bg-yellow-50 border-yellow-150 text-yellow-600'
+  },
+  {
+    supervisor: 'bg-orange-200 border-orange-300 text-orange-800',
+    groupLeader: 'bg-orange-100 border-orange-200 text-orange-700',
+    pro: 'bg-orange-50 border-orange-150 text-orange-600'
+  },
+  {
+    supervisor: 'bg-green-200 border-green-300 text-green-800',
+    groupLeader: 'bg-green-100 border-green-200 text-green-700',
+    pro: 'bg-green-50 border-green-150 text-green-600'
+  },
+  {
+    supervisor: 'bg-blue-200 border-blue-300 text-blue-800',
+    groupLeader: 'bg-blue-100 border-blue-200 text-blue-700',
+    pro: 'bg-blue-50 border-blue-150 text-blue-600'
+  },
+  {
+    supervisor: 'bg-purple-200 border-purple-300 text-purple-800',
+    groupLeader: 'bg-purple-100 border-purple-200 text-purple-700',
+    pro: 'bg-purple-50 border-purple-150 text-purple-600'
+  },
+  {
+    supervisor: 'bg-pink-200 border-pink-300 text-pink-800',
+    groupLeader: 'bg-pink-100 border-pink-200 text-pink-700',
+    pro: 'bg-pink-50 border-pink-150 text-pink-600'
+  }
+];
 
 export const HorizontalOrganizationChart = ({
   panchayathId,
@@ -44,7 +78,10 @@ export const HorizontalOrganizationChart = ({
   };
 
   const handleDoubleClick = (nodeId: string) => {
-    toggleNode(nodeId);
+    const subordinates = getSubordinates(nodeId);
+    if (subordinates.length > 0) {
+      toggleNode(nodeId);
+    }
   };
 
   const handleViewDetails = (agent: Agent) => {
@@ -53,7 +90,6 @@ export const HorizontalOrganizationChart = ({
   };
 
   const handleEditAgent = (agent: Agent) => {
-    // Navigate to edit page or show edit dialog
     toast({
       title: "Edit Feature",
       description: `Edit functionality for ${agent.name} will be implemented`,
@@ -65,44 +101,45 @@ export const HorizontalOrganizationChart = ({
     setDeleteDialogOpen(true);
   };
 
-  const handleZoomIn = () => {
-    setZoomLevel(prev => Math.min(prev + 0.1, 2));
-  };
-
-  const handleZoomOut = () => {
-    setZoomLevel(prev => Math.max(prev - 0.1, 0.5));
-  };
-
-  const resetZoom = () => {
-    setZoomLevel(1);
-  };
-
-  const expandAll = () => {
-    const allAgentIds = agents.map(agent => agent.id);
-    const allExpanded = allAgentIds.reduce((acc, id) => ({
-      ...acc,
-      [id]: true
-    }), {});
-    setExpandedNodes(allExpanded);
-  };
-
-  const collapseAll = () => {
-    setExpandedNodes({});
-  };
-
-  const getRoleColor = (role: string) => {
-    switch (role) {
-      case 'coordinator':
-        return 'bg-purple-100 text-purple-800 border-purple-200';
-      case 'supervisor':
-        return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'group-leader':
-        return 'bg-green-100 text-green-800 border-green-200';
-      case 'pro':
-        return 'bg-orange-100 text-orange-800 border-orange-200';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-200';
+  const getRoleColor = (agent: Agent) => {
+    if (agent.role === 'coordinator') {
+      return 'bg-blue-300 border-blue-400 text-blue-900';
     }
+    
+    // Find supervisor for this agent
+    let supervisorId = null;
+    if (agent.role === 'supervisor') {
+      supervisorId = agent.id;
+    } else if (agent.superior_id) {
+      const superior = agents.find(a => a.id === agent.superior_id);
+      if (superior?.role === 'supervisor') {
+        supervisorId = superior.id;
+      } else if (superior?.superior_id) {
+        const grandSuperior = agents.find(a => a.id === superior.superior_id);
+        if (grandSuperior?.role === 'supervisor') {
+          supervisorId = grandSuperior.id;
+        }
+      }
+    }
+    
+    if (supervisorId) {
+      const supervisors = agents.filter(a => a.role === 'supervisor');
+      const supervisorIndex = supervisors.findIndex(s => s.id === supervisorId);
+      const colorScheme = supervisorColors[supervisorIndex % supervisorColors.length];
+      
+      switch (agent.role) {
+        case 'supervisor':
+          return colorScheme.supervisor;
+        case 'group-leader':
+          return colorScheme.groupLeader;
+        case 'pro':
+          return colorScheme.pro;
+        default:
+          return 'bg-gray-100 border-gray-200 text-gray-800';
+      }
+    }
+    
+    return 'bg-gray-100 border-gray-200 text-gray-800';
   };
 
   const getRoleLabel = (role: string) => {
@@ -155,31 +192,21 @@ export const HorizontalOrganizationChart = ({
     const subordinates = getSubordinates(agent.id);
     const hasSubordinates = subordinates.length > 0;
     const isExpanded = expandedNodes[agent.id] ?? false;
+    const cardColors = getRoleColor(agent);
 
     return (
       <div className="flex flex-col items-center">
-        {/* Compact Agent Box */}
         <Card 
-          className="bg-white border-2 hover:shadow-lg transition-all duration-300 cursor-pointer min-w-fit"
+          className={`${cardColors} border-2 hover:shadow-lg transition-all duration-300 cursor-pointer min-w-fit max-w-xs`}
           onDoubleClick={() => hasSubordinates && handleDoubleClick(agent.id)}
         >
-          <CardContent className="p-3 text-center relative">
-            {/* Expansion Indicator */}
-            {hasSubordinates && (
-              <div className="absolute top-1 left-1">
-                {isExpanded ? 
-                  <ChevronDown className="h-3 w-3 text-gray-500" /> : 
-                  <ChevronRight className="h-3 w-3 text-gray-500" />
-                }
-              </div>
-            )}
-
+          <CardContent className="p-4 text-center relative">
             {/* Action Buttons */}
-            <div className="absolute top-1 right-1 flex gap-1">
+            <div className="absolute top-2 right-2 flex gap-1">
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 w-5 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                className="h-6 w-6 p-0 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleViewDetails(agent);
@@ -190,7 +217,7 @@ export const HorizontalOrganizationChart = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 w-5 p-0 text-gray-500 hover:text-green-600 hover:bg-green-50"
+                className="h-6 w-6 p-0 text-gray-600 hover:text-green-600 hover:bg-green-50 rounded-full"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleEditAgent(agent);
@@ -201,7 +228,7 @@ export const HorizontalOrganizationChart = ({
               <Button
                 variant="ghost"
                 size="sm"
-                className="h-5 w-5 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                className="h-6 w-6 p-0 text-gray-600 hover:text-red-600 hover:bg-red-50 rounded-full"
                 onClick={(e) => {
                   e.stopPropagation();
                   handleDeleteAgent(agent);
@@ -212,18 +239,39 @@ export const HorizontalOrganizationChart = ({
             </div>
             
             <div className="mt-2">
-              <User className="h-4 w-4 mx-auto mb-1 text-gray-600" />
-              <h3 className="font-semibold text-sm mb-1 break-words px-4">{agent.name}</h3>
-              <Badge className={`${getRoleColor(agent.role)} text-xs`}>
+              <User className="h-5 w-5 mx-auto mb-2 text-gray-700" />
+              <h3 className="font-semibold text-sm mb-2 break-words">{agent.name}</h3>
+              <Badge className="text-xs mb-3 bg-white/50 text-gray-800 border-white/30">
                 {getRoleLabel(agent.role)}
               </Badge>
             </div>
             
             {hasSubordinates && (
-              <div className="mt-1">
-                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-300">
-                  {subordinates.length} sub{subordinates.length !== 1 ? 's' : ''}
+              <div className="mt-3 flex flex-col items-center gap-2">
+                <Badge variant="outline" className="text-xs bg-white/30 text-gray-700 border-white/50">
+                  {subordinates.length} subordinate{subordinates.length !== 1 ? 's' : ''}
                 </Badge>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    toggleNode(agent.id);
+                  }}
+                  className="h-8 w-full text-xs bg-white/20 border-white/30 hover:bg-white/40"
+                >
+                  {isExpanded ? (
+                    <>
+                      <ChevronUp className="h-3 w-3 mr-1" />
+                      Collapse
+                    </>
+                  ) : (
+                    <>
+                      <ChevronDown className="h-3 w-3 mr-1" />
+                      Expand
+                    </>
+                  )}
+                </Button>
               </div>
             )}
           </CardContent>
@@ -238,12 +286,12 @@ export const HorizontalOrganizationChart = ({
             {/* Horizontal connector */}
             {subordinates.length > 1 && (
               <div className="flex items-center">
-                <div className="h-0.5 bg-gray-400" style={{ width: `${(subordinates.length - 1) * 120}px` }}></div>
+                <div className="h-0.5 bg-gray-400" style={{ width: `${(subordinates.length - 1) * 200}px` }}></div>
               </div>
             )}
             
             {/* Individual connection points and subordinates */}
-            <div className="flex items-start" style={{ gap: '120px' }}>
+            <div className="flex items-start" style={{ gap: '200px' }}>
               {subordinates.map((subordinate, index) => (
                 <div key={subordinate.id} className="flex flex-col items-center">
                   {/* Vertical line up to subordinate */}
@@ -300,7 +348,7 @@ export const HorizontalOrganizationChart = ({
                   </div>
                 </TableCell>
                 <TableCell>
-                  <Badge className={getRoleColor(agent.role)}>
+                  <Badge className={getRoleColor(agent)}>
                     {getRoleLabel(agent.role)}
                   </Badge>
                 </TableCell>
@@ -314,7 +362,7 @@ export const HorizontalOrganizationChart = ({
                 </TableCell>
                 <TableCell>
                   <div className="flex gap-2">
-                    <Button variant="outline" size="sm">
+                    <Button variant="outline" size="sm" onClick={() => handleEditAgent(agent)}>
                       <Edit className="h-4 w-4" />
                     </Button>
                     <Button
@@ -455,7 +503,7 @@ export const HorizontalOrganizationChart = ({
           </div>
         </div>
         <div className="mt-2 text-sm text-gray-400">
-          Double-click on cards to expand/collapse • Click eye icon to view details
+          Double-click on cards to expand/collapse • Click eye icon to view details • Use expand buttons
         </div>
       </div>
 
@@ -510,7 +558,7 @@ export const HorizontalOrganizationChart = ({
             <div className="space-y-4">
               <div>
                 <h3 className="font-semibold text-lg">{selectedAgent.name}</h3>
-                <Badge className={getRoleColor(selectedAgent.role)}>
+                <Badge className={getRoleColor(selectedAgent)}>
                   {getRoleLabel(selectedAgent.role)}
                 </Badge>
               </div>

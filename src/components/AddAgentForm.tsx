@@ -13,7 +13,8 @@ export const AddAgentForm = () => {
     panchayathId: '',
     superiorId: '',
     email: '',
-    phone: ''
+    phone: '',
+    ward: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   
@@ -34,7 +35,8 @@ export const AddAgentForm = () => {
         panchayath_id: formData.panchayathId,
         superior_id: formData.superiorId || undefined,
         email: formData.email || undefined,
-        phone: formData.phone || undefined
+        phone: formData.phone || undefined,
+        ward: formData.ward || undefined
       });
       setFormData({
         name: '',
@@ -42,7 +44,8 @@ export const AddAgentForm = () => {
         panchayathId: '',
         superiorId: '',
         email: '',
-        phone: ''
+        phone: '',
+        ward: ''
       });
     } catch (error) {
       console.error('Error submitting form:', error);
@@ -121,6 +124,17 @@ export const AddAgentForm = () => {
           </Select>
         </div>
       )}
+      
+      <div>
+        <Label htmlFor="ward">Ward</Label>
+        <Input
+          id="ward"
+          type="text"
+          value={formData.ward}
+          onChange={(e) => setFormData(prev => ({ ...prev, ward: e.target.value }))}
+          placeholder="Enter ward number or name"
+        />
+      </div>
       
       <div>
         <Label htmlFor="email">Email (Optional)</Label>
