@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { Card, CardContent } from "@/components/ui/card";
@@ -7,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { User, Mail, Phone, Edit, Trash2, Plus, ZoomIn, ZoomOut, ChevronDown, ChevronRight, UserPlus, List, Workflow } from "lucide-react";
+import { User, Mail, Phone, Edit, Trash2, Plus, ZoomIn, ZoomOut, ChevronDown, ChevronRight, UserPlus, List, Workflow, Eye } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Link } from "react-router-dom";
@@ -30,6 +29,8 @@ export const HorizontalOrganizationChart = ({
   onRefresh
 }: HorizontalOrganizationChartProps) => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [detailsDialogOpen, setDetailsDialogOpen] = useState(false);
+  const [selectedAgent, setSelectedAgent] = useState<Agent | null>(null);
   const [agentToDelete, setAgentToDelete] = useState<Agent | null>(null);
   const [expandedNodes, setExpandedNodes] = useState<ExpandedNodes>({});
   const [zoomLevel, setZoomLevel] = useState(1);
@@ -40,6 +41,28 @@ export const HorizontalOrganizationChart = ({
       ...prev,
       [nodeId]: !prev[nodeId]
     }));
+  };
+
+  const handleDoubleClick = (nodeId: string) => {
+    toggleNode(nodeId);
+  };
+
+  const handleViewDetails = (agent: Agent) => {
+    setSelectedAgent(agent);
+    setDetailsDialogOpen(true);
+  };
+
+  const handleEditAgent = (agent: Agent) => {
+    // Navigate to edit page or show edit dialog
+    toast({
+      title: "Edit Feature",
+      description: `Edit functionality for ${agent.name} will be implemented`,
+    });
+  };
+
+  const handleDeleteAgent = (agent: Agent) => {
+    setAgentToDelete(agent);
+    setDeleteDialogOpen(true);
   };
 
   const handleZoomIn = () => {
@@ -70,15 +93,15 @@ export const HorizontalOrganizationChart = ({
   const getRoleColor = (role: string) => {
     switch (role) {
       case 'coordinator':
-        return 'bg-purple-600 text-white border-purple-200 shadow-lg';
+        return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'supervisor':
-        return 'bg-blue-600 text-white border-blue-200 shadow-lg';
+        return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'group-leader':
-        return 'bg-green-600 text-white border-green-200 shadow-lg';
+        return 'bg-green-100 text-green-800 border-green-200';
       case 'pro':
-        return 'bg-orange-600 text-white border-orange-200 shadow-lg';
+        return 'bg-orange-100 text-orange-800 border-orange-200';
       default:
-        return 'bg-gray-600 text-white border-gray-200 shadow-lg';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -131,74 +154,76 @@ export const HorizontalOrganizationChart = ({
   const AgentCard = ({ agent, level = 0 }: { agent: Agent; level?: number; }) => {
     const subordinates = getSubordinates(agent.id);
     const hasSubordinates = subordinates.length > 0;
-    const isExpanded = expandedNodes[agent.id] ?? true;
+    const isExpanded = expandedNodes[agent.id] ?? false;
 
     return (
       <div className="flex flex-col items-center">
-        {/* Agent Box - Responsive width */}
-        <Card className={`${getRoleColor(agent.role)} min-w-fit max-w-xs border-2 hover:shadow-xl transition-all duration-300`}>
-          <CardContent className="p-4 text-center relative">
-            {/* Expansion Toggle */}
+        {/* Compact Agent Box */}
+        <Card 
+          className="bg-white border-2 hover:shadow-lg transition-all duration-300 cursor-pointer min-w-fit"
+          onDoubleClick={() => hasSubordinates && handleDoubleClick(agent.id)}
+        >
+          <CardContent className="p-3 text-center relative">
+            {/* Expansion Indicator */}
             {hasSubordinates && (
+              <div className="absolute top-1 left-1">
+                {isExpanded ? 
+                  <ChevronDown className="h-3 w-3 text-gray-500" /> : 
+                  <ChevronRight className="h-3 w-3 text-gray-500" />
+                }
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="absolute top-1 right-1 flex gap-1">
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => toggleNode(agent.id)}
-                className="absolute top-2 left-2 h-6 w-6 p-0 text-white/80 hover:text-white hover:bg-white/20 rounded-full"
+                className="h-5 w-5 p-0 text-gray-500 hover:text-blue-600 hover:bg-blue-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleViewDetails(agent);
+                }}
               >
-                {isExpanded ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
+                <Eye className="h-3 w-3" />
               </Button>
-            )}
-
-            <div className="flex items-center justify-between mb-2">
-              <User className="h-4 w-4 opacity-80" />
-              <div className="flex gap-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-white/80 hover:text-white hover:bg-white/20 rounded-full"
-                >
-                  <Edit className="h-3 w-3" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="h-6 w-6 p-0 text-white/80 hover:text-white hover:bg-red-500/30 rounded-full"
-                  onClick={() => {
-                    setAgentToDelete(agent);
-                    setDeleteDialogOpen(true);
-                  }}
-                >
-                  <Trash2 className="h-3 w-3" />
-                </Button>
-              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 w-5 p-0 text-gray-500 hover:text-green-600 hover:bg-green-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleEditAgent(agent);
+                }}
+              >
+                <Edit className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="h-5 w-5 p-0 text-gray-500 hover:text-red-600 hover:bg-red-50"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleDeleteAgent(agent);
+                }}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
             </div>
             
-            <h3 className="font-bold text-sm mb-2 break-words px-1">{agent.name}</h3>
-            <Badge variant="outline" className="bg-white/20 text-white border-white/40 text-xs mb-3">
-              {getRoleLabel(agent.role)}
-            </Badge>
+            <div className="mt-2">
+              <User className="h-4 w-4 mx-auto mb-1 text-gray-600" />
+              <h3 className="font-semibold text-sm mb-1 break-words px-4">{agent.name}</h3>
+              <Badge className={`${getRoleColor(agent.role)} text-xs`}>
+                {getRoleLabel(agent.role)}
+              </Badge>
+            </div>
             
             {hasSubordinates && (
-              <Badge variant="outline" className="bg-white/10 text-white border-white/30 text-xs mb-2">
-                {subordinates.length} subordinate{subordinates.length !== 1 ? 's' : ''}
-              </Badge>
-            )}
-            
-            {(agent.email || agent.phone) && (
-              <div className="mt-2 space-y-1">
-                {agent.email && (
-                  <div className="flex items-center justify-center gap-1 text-xs opacity-90">
-                    <Mail className="h-3 w-3" />
-                    <span className="truncate max-w-[140px]">{agent.email}</span>
-                  </div>
-                )}
-                {agent.phone && (
-                  <div className="flex items-center justify-center gap-1 text-xs opacity-90">
-                    <Phone className="h-3 w-3" />
-                    <span>{agent.phone}</span>
-                  </div>
-                )}
+              <div className="mt-1">
+                <Badge variant="outline" className="text-xs bg-gray-50 text-gray-600 border-gray-300">
+                  {subordinates.length} sub{subordinates.length !== 1 ? 's' : ''}
+                </Badge>
               </div>
             )}
           </CardContent>
@@ -206,23 +231,24 @@ export const HorizontalOrganizationChart = ({
 
         {/* Connection Lines and Subordinates */}
         {hasSubordinates && isExpanded && (
-          <div className="flex flex-col items-center mt-6">
+          <div className="flex flex-col items-center mt-4">
             {/* Vertical line down */}
-            <div className="w-1 h-8 bg-gray-400 rounded-full"></div>
+            <div className="w-0.5 h-6 bg-gray-400"></div>
             
-            {/* Horizontal connector with proper connections */}
-            <div className="flex items-center">
-              <div className={`h-1 bg-gray-400 rounded-full ${subordinates.length > 1 ? 'w-12' : 'w-0'}`}></div>
-              <div className="w-2 h-2 bg-gray-400 rounded-full border-2 border-white"></div>
-              <div className={`h-1 bg-gray-400 rounded-full ${subordinates.length > 1 ? 'w-12' : 'w-0'}`}></div>
-            </div>
+            {/* Horizontal connector */}
+            {subordinates.length > 1 && (
+              <div className="flex items-center">
+                <div className="h-0.5 bg-gray-400" style={{ width: `${(subordinates.length - 1) * 120}px` }}></div>
+              </div>
+            )}
             
-            {/* Subordinates in horizontal layout with connecting lines */}
-            <div className="flex gap-12 mt-8">
+            {/* Individual connection points and subordinates */}
+            <div className="flex items-start" style={{ gap: '120px' }}>
               {subordinates.map((subordinate, index) => (
                 <div key={subordinate.id} className="flex flex-col items-center">
                   {/* Vertical line up to subordinate */}
-                  <div className="w-1 h-8 bg-gray-400 rounded-full"></div>
+                  <div className="w-0.5 h-6 bg-gray-400"></div>
+                  <div className="w-2 h-2 bg-gray-400 rounded-full -mt-1 mb-2"></div>
                   <AgentCard agent={subordinate} level={level + 1} />
                 </div>
               ))}
@@ -340,7 +366,14 @@ export const HorizontalOrganizationChart = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={expandAll}
+              onClick={() => {
+                const allAgentIds = agents.map(agent => agent.id);
+                const allExpanded = allAgentIds.reduce((acc, id) => ({
+                  ...acc,
+                  [id]: true
+                }), {});
+                setExpandedNodes(allExpanded);
+              }}
               className="text-green-600 border-green-300 hover:bg-green-50"
             >
               Expand All
@@ -348,7 +381,7 @@ export const HorizontalOrganizationChart = ({
             <Button
               variant="outline"
               size="sm"
-              onClick={collapseAll}
+              onClick={() => setExpandedNodes({})}
               className="text-red-600 border-red-300 hover:bg-red-50"
             >
               Collapse All
@@ -362,7 +395,7 @@ export const HorizontalOrganizationChart = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleZoomOut}
+              onClick={() => setZoomLevel(prev => Math.max(prev - 0.1, 0.5))}
               disabled={zoomLevel <= 0.5}
               className="h-8 w-8 p-0"
             >
@@ -374,7 +407,7 @@ export const HorizontalOrganizationChart = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleZoomIn}
+              onClick={() => setZoomLevel(prev => Math.min(prev + 0.1, 2))}
               disabled={zoomLevel >= 2}
               className="h-8 w-8 p-0"
             >
@@ -383,14 +416,13 @@ export const HorizontalOrganizationChart = ({
             <Button
               variant="ghost"
               size="sm"
-              onClick={resetZoom}
+              onClick={() => setZoomLevel(1)}
               className="text-xs px-2 h-8"
             >
               Reset
             </Button>
           </div>
           
-          {/* Add Agent Button */}
           <Link to="/add-agents">
             <Button className="bg-green-600 hover:bg-green-700 text-white">
               <Plus className="h-4 w-4 mr-2" />
@@ -422,6 +454,9 @@ export const HorizontalOrganizationChart = ({
             <div className="text-gray-400">P.R.Os</div>
           </div>
         </div>
+        <div className="mt-2 text-sm text-gray-400">
+          Double-click on cards to expand/collapse • Click eye icon to view details
+        </div>
       </div>
 
       {/* Tabs for Chart and Table View */}
@@ -438,7 +473,6 @@ export const HorizontalOrganizationChart = ({
         </TabsList>
         
         <TabsContent value="chart" className="mt-6">
-          {/* Hierarchy Tree with Zoom */}
           <div className="bg-white p-8 rounded-xl overflow-auto shadow-xl border">
             <div
               className="flex justify-center transition-transform duration-300 ease-in-out"
@@ -463,6 +497,63 @@ export const HorizontalOrganizationChart = ({
         </TabsContent>
       </Tabs>
 
+      {/* Agent Details Dialog */}
+      <Dialog open={detailsDialogOpen} onOpenChange={setDetailsDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5" />
+              Agent Details
+            </DialogTitle>
+          </DialogHeader>
+          {selectedAgent && (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-lg">{selectedAgent.name}</h3>
+                <Badge className={getRoleColor(selectedAgent.role)}>
+                  {getRoleLabel(selectedAgent.role)}
+                </Badge>
+              </div>
+              
+              {selectedAgent.email && (
+                <div className="flex items-center gap-2">
+                  <Mail className="h-4 w-4 text-gray-500" />
+                  <span>{selectedAgent.email}</span>
+                </div>
+              )}
+              
+              {selectedAgent.phone && (
+                <div className="flex items-center gap-2">
+                  <Phone className="h-4 w-4 text-gray-500" />
+                  <span>{selectedAgent.phone}</span>
+                </div>
+              )}
+              
+              <div className="text-sm text-gray-500">
+                <p>Created: {new Date(selectedAgent.created_at).toLocaleDateString()}</p>
+                <p>Subordinates: {getSubordinates(selectedAgent.id).length}</p>
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDetailsDialogOpen(false)}>
+              Close
+            </Button>
+            <Button 
+              onClick={() => {
+                if (selectedAgent) {
+                  handleEditAgent(selectedAgent);
+                  setDetailsDialogOpen(false);
+                }
+              }}
+            >
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
       {/* Delete Confirmation Dialog */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
         <DialogContent>
@@ -470,9 +561,9 @@ export const HorizontalOrganizationChart = ({
             <DialogTitle>Delete Agent</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete {agentToDelete?.name}? This action cannot be undone.
-              {getSubordinates(agentToDelete?.id || '').length > 0 && (
+              {agentToDelete && getSubordinates(agentToDelete.id).length > 0 && (
                 <span className="block mt-2 text-orange-600 font-medium">
-                  Warning: This agent has subordinates who will become unassigned.
+                  Warning: This agent has {getSubordinates(agentToDelete.id).length} subordinate(s) who will become unassigned.
                 </span>
               )}
             </DialogDescription>
