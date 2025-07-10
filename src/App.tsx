@@ -7,6 +7,7 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
 import AddAgents from "./pages/AddAgents";
 import ViewHierarchy from "./pages/ViewHierarchy";
+import TaskManagement from "./pages/TaskManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -21,7 +22,7 @@ const App = () => (
           <Route path="/" element={<Index />} />
           <Route path="/add-agents" element={<AddAgents />} />
           <Route path="/view-hierarchy" element={<ViewHierarchy />} />
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+          <Route path="/task-management" element={<TaskManagement />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>

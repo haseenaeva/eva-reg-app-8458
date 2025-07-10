@@ -14,7 +14,287 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      agents: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          panchayath_id: string
+          phone: string | null
+          role: Database["public"]["Enums"]["agent_role"]
+          superior_id: string | null
+          updated_at: string
+          ward: string | null
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          panchayath_id: string
+          phone?: string | null
+          role: Database["public"]["Enums"]["agent_role"]
+          superior_id?: string | null
+          updated_at?: string
+          ward?: string | null
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          panchayath_id?: string
+          phone?: string | null
+          role?: Database["public"]["Enums"]["agent_role"]
+          superior_id?: string | null
+          updated_at?: string
+          ward?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agents_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: false
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agents_superior_id_fkey"
+            columns: ["superior_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      management_teams: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      panchayaths: {
+        Row: {
+          created_at: string
+          district: string
+          id: string
+          name: string
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          district: string
+          id?: string
+          name: string
+          state: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          district?: string
+          id?: string
+          name?: string
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      task_remarks: {
+        Row: {
+          created_at: string
+          id: string
+          remark: string
+          task_id: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          remark: string
+          task_id: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          remark?: string
+          task_id?: string
+          updated_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "task_remarks_task_id_fkey"
+            columns: ["task_id"]
+            isOneToOne: false
+            referencedRelation: "tasks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tasks: {
+        Row: {
+          allocated_to_agent: string | null
+          allocated_to_team: string | null
+          created_at: string
+          created_by: string | null
+          description: string | null
+          due_date: string | null
+          id: string
+          priority: Database["public"]["Enums"]["task_priority"]
+          status: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          allocated_to_agent?: string | null
+          allocated_to_team?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          allocated_to_agent?: string | null
+          allocated_to_team?: string | null
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          due_date?: string | null
+          id?: string
+          priority?: Database["public"]["Enums"]["task_priority"]
+          status?: Database["public"]["Enums"]["task_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_allocated_to_agent_fkey"
+            columns: ["allocated_to_agent"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_allocated_to_team_fkey"
+            columns: ["allocated_to_team"]
+            isOneToOne: false
+            referencedRelation: "management_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_leader_id: {
+        Row: {
+          id: string | null
+        }
+        Insert: {
+          id?: string | null
+        }
+        Update: {
+          id?: string | null
+        }
+        Relationships: []
+      }
+      team_leader_panchayaths: {
+        Row: {
+          created_at: string
+          id: string
+          panchayath_id: string
+          team_leader_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          panchayath_id: string
+          team_leader_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          panchayath_id?: string
+          team_leader_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "team_leader_panchayaths_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: false
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "team_leader_panchayaths_team_leader_id_fkey"
+            columns: ["team_leader_id"]
+            isOneToOne: false
+            referencedRelation: "team_leaders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      team_leaders: {
+        Row: {
+          created_at: string
+          email: string | null
+          id: string
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string | null
+          id?: string
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      thiruvali_id: {
+        Row: {
+          id: string | null
+        }
+        Insert: {
+          id?: string | null
+        }
+        Update: {
+          id?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +303,9 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      agent_role: "coordinator" | "supervisor" | "group-leader" | "pro"
+      task_priority: "high" | "medium" | "normal"
+      task_status: "pending" | "completed" | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +432,10 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      agent_role: ["coordinator", "supervisor", "group-leader", "pro"],
+      task_priority: ["high", "medium", "normal"],
+      task_status: ["pending", "completed", "cancelled"],
+    },
   },
 } as const

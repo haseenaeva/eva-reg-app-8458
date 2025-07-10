@@ -1,13 +1,13 @@
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TreePine, Plus, Eye } from "lucide-react";
+import { Users, TreePine, Plus, Eye, CheckSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Index = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
             <TreePine className="h-10 w-10 text-blue-600" />
@@ -18,7 +18,7 @@ const Index = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <Card className="hover:shadow-lg transition-shadow duration-200 border-2 border-transparent hover:border-blue-200">
             <CardHeader className="text-center pb-4">
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
@@ -54,6 +54,26 @@ const Index = () => {
                 <Button size="lg" variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50">
                   <Users className="mr-2 h-5 w-5" />
                   View Hierarchy
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          <Card className="hover:shadow-lg transition-shadow duration-200 border-2 border-transparent hover:border-purple-200">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center">
+                <CheckSquare className="h-8 w-8 text-purple-600" />
+              </div>
+              <CardTitle className="text-2xl text-gray-900">Task Management</CardTitle>
+              <CardDescription className="text-gray-600">
+                Create, assign, and track tasks for your teams and agents with priority levels and status updates
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link to="/task-management">
+                <Button size="lg" variant="outline" className="w-full border-purple-600 text-purple-600 hover:bg-purple-50">
+                  <CheckSquare className="mr-2 h-5 w-5" />
+                  Manage Tasks
                 </Button>
               </Link>
             </CardContent>
