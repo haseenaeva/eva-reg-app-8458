@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -142,7 +143,7 @@ export const ViewTasks = () => {
     }
   };
 
-  const updateTaskStatus = async (taskId: string, newStatus: string) => {
+  const updateTaskStatus = async (taskId: string, newStatus: 'pending' | 'completed' | 'cancelled') => {
     try {
       const { error } = await supabase
         .from('tasks')
@@ -343,7 +344,7 @@ export const ViewTasks = () => {
                 <div className="flex gap-2 flex-wrap">
                   <Select
                     value={task.status}
-                    onValueChange={(value) => updateTaskStatus(task.id, value)}
+                    onValueChange={(value) => updateTaskStatus(task.id, value as 'pending' | 'completed' | 'cancelled')}
                   >
                     <SelectTrigger className="w-32">
                       <SelectValue />
