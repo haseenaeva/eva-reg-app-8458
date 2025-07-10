@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,38 +23,14 @@ interface ExpandedNodes {
   [key: string]: boolean;
 }
 
-// Color schemes for different supervisors and their subordinates
-const supervisorColors = [
-  {
-    supervisor: 'bg-yellow-200 border-yellow-300 text-yellow-800',
-    groupLeader: 'bg-yellow-100 border-yellow-200 text-yellow-700',
-    pro: 'bg-yellow-50 border-yellow-150 text-yellow-600'
-  },
-  {
-    supervisor: 'bg-orange-200 border-orange-300 text-orange-800',
-    groupLeader: 'bg-orange-100 border-orange-200 text-orange-700',
-    pro: 'bg-orange-50 border-orange-150 text-orange-600'
-  },
-  {
-    supervisor: 'bg-green-200 border-green-300 text-green-800',
-    groupLeader: 'bg-green-100 border-green-200 text-green-700',
-    pro: 'bg-green-50 border-green-150 text-green-600'
-  },
-  {
-    supervisor: 'bg-blue-200 border-blue-300 text-blue-800',
-    groupLeader: 'bg-blue-100 border-blue-200 text-blue-700',
-    pro: 'bg-blue-50 border-blue-150 text-blue-600'
-  },
-  {
-    supervisor: 'bg-purple-200 border-purple-300 text-purple-800',
-    groupLeader: 'bg-purple-100 border-purple-200 text-purple-700',
-    pro: 'bg-purple-50 border-purple-150 text-purple-600'
-  },
-  {
-    supervisor: 'bg-pink-200 border-pink-300 text-pink-800',
-    groupLeader: 'bg-pink-100 border-pink-200 text-pink-700',
-    pro: 'bg-pink-50 border-pink-150 text-pink-600'
-  }
+// Supervisor accent colors for corner indicators
+const supervisorAccentColors = [
+  'bg-yellow-500',
+  'bg-orange-500', 
+  'bg-green-500',
+  'bg-blue-500',
+  'bg-purple-500',
+  'bg-pink-500'
 ];
 
 export const HorizontalOrganizationChart = ({
@@ -103,13 +80,29 @@ export const HorizontalOrganizationChart = ({
 
   const getRoleColor = (agent: Agent) => {
     if (agent.role === 'coordinator') {
-      return 'bg-blue-300 border-blue-400 text-blue-900';
+      return 'bg-blue-200 border-blue-300 text-blue-900';
     }
     
+    if (agent.role === 'supervisor') {
+      return 'bg-gray-200 border-gray-300 text-gray-900';
+    }
+    
+    if (agent.role === 'group-leader') {
+      return 'bg-green-100 border-green-200 text-green-800';
+    }
+    
+    if (agent.role === 'pro') {
+      return 'bg-orange-100 border-orange-200 text-orange-800';
+    }
+    
+    return 'bg-gray-100 border-gray-200 text-gray-800';
+  };
+
+  const getSupervisorAccentColor = (agent: Agent) => {
     // Find supervisor for this agent
     let supervisorId = null;
     if (agent.role === 'supervisor') {
-      supervisorId = agent.id;
+      return null; // Supervisors don't need accent colors
     } else if (agent.superior_id) {
       const superior = agents.find(a => a.id === agent.superior_id);
       if (superior?.role === 'supervisor') {
@@ -125,21 +118,10 @@ export const HorizontalOrganizationChart = ({
     if (supervisorId) {
       const supervisors = agents.filter(a => a.role === 'supervisor');
       const supervisorIndex = supervisors.findIndex(s => s.id === supervisorId);
-      const colorScheme = supervisorColors[supervisorIndex % supervisorColors.length];
-      
-      switch (agent.role) {
-        case 'supervisor':
-          return colorScheme.supervisor;
-        case 'group-leader':
-          return colorScheme.groupLeader;
-        case 'pro':
-          return colorScheme.pro;
-        default:
-          return 'bg-gray-100 border-gray-200 text-gray-800';
-      }
+      return supervisorAccentColors[supervisorIndex % supervisorAccentColors.length];
     }
     
-    return 'bg-gray-100 border-gray-200 text-gray-800';
+    return null;
   };
 
   const getRoleLabel = (role: string) => {
@@ -193,16 +175,22 @@ export const HorizontalOrganizationChart = ({
     const hasSubordinates = subordinates.length > 0;
     const isExpanded = expandedNodes[agent.id] ?? false;
     const cardColors = getRoleColor(agent);
+    const accentColor = getSupervisorAccentColor(agent);
 
     return (
       <div className="flex flex-col items-center">
         <Card 
-          className={`${cardColors} border-2 hover:shadow-lg transition-all duration-300 cursor-pointer min-w-fit max-w-xs`}
+          className={`${cardColors} border-2 hover:shadow-xl hover:scale-105 transition-all duration-300 cursor-pointer min-w-fit max-w-xs relative overflow-hidden`}
           onDoubleClick={() => hasSubordinates && handleDoubleClick(agent.id)}
         >
+          {/* Supervisor accent color corner */}
+          {accentColor && (
+            <div className={`absolute top-0 right-0 w-6 h-6 ${accentColor} transform rotate-45 translate-x-3 -translate-y-3`}></div>
+          )}
+          
           <CardContent className="p-4 text-center relative">
             {/* Action Buttons */}
-            <div className="absolute top-2 right-2 flex gap-1">
+            <div className="absolute top-2 right-2 flex gap-1 z-10">
               <Button
                 variant="ghost"
                 size="sm"
@@ -253,21 +241,21 @@ export const HorizontalOrganizationChart = ({
                 </Badge>
                 <Button
                   variant="outline"
-                  size="sm"
+                  size="lg"
                   onClick={(e) => {
                     e.stopPropagation();
                     toggleNode(agent.id);
                   }}
-                  className="h-8 w-full text-xs bg-white/20 border-white/30 hover:bg-white/40"
+                  className="h-10 w-full text-sm bg-white/20 border-white/30 hover:bg-white/40 font-medium"
                 >
                   {isExpanded ? (
                     <>
-                      <ChevronUp className="h-3 w-3 mr-1" />
+                      <ChevronUp className="h-4 w-4 mr-2" />
                       Collapse
                     </>
                   ) : (
                     <>
-                      <ChevronDown className="h-3 w-3 mr-1" />
+                      <ChevronDown className="h-4 w-4 mr-2" />
                       Expand
                     </>
                   )}
@@ -576,6 +564,12 @@ export const HorizontalOrganizationChart = ({
                   <span>{selectedAgent.phone}</span>
                 </div>
               )}
+
+              {selectedAgent.ward && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-500">Ward: {selectedAgent.ward}</span>
+                </div>
+              )}
               
               <div className="text-sm text-gray-500">
                 <p>Created: {new Date(selectedAgent.created_at).toLocaleDateString()}</p>
@@ -627,8 +621,8 @@ export const HorizontalOrganizationChart = ({
               Delete
             </Button>
           </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        </Dialog>
+      </DialogContent>
     </div>
   );
 };
