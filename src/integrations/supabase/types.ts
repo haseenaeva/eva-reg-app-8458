@@ -25,6 +25,7 @@ export type Database = {
           role: Database["public"]["Enums"]["agent_role"]
           superior_id: string | null
           updated_at: string
+          ward: string | null
         }
         Insert: {
           created_at?: string
@@ -36,6 +37,7 @@ export type Database = {
           role: Database["public"]["Enums"]["agent_role"]
           superior_id?: string | null
           updated_at?: string
+          ward?: string | null
         }
         Update: {
           created_at?: string
@@ -47,6 +49,7 @@ export type Database = {
           role?: Database["public"]["Enums"]["agent_role"]
           superior_id?: string | null
           updated_at?: string
+          ward?: string | null
         }
         Relationships: [
           {

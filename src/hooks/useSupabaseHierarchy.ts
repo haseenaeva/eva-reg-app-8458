@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -11,6 +10,7 @@ export interface Agent {
   superior_id?: string;
   email?: string;
   phone?: string;
+  ward?: string;
   created_at: string;
   updated_at: string;
 }
