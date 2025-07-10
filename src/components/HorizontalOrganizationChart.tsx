@@ -621,8 +621,8 @@ export const HorizontalOrganizationChart = ({
               Delete
             </Button>
           </DialogFooter>
-        </Dialog>
-      </DialogContent>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
