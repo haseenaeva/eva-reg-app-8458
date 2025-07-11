@@ -17,11 +17,25 @@ interface ManagementTeam {
   id: string;
   name: string;
   description: string;
-  members: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+interface TeamMember {
+  id: string;
+  team_id: string;
+  agent_id: string;
+  created_at: string;
+  agents: {
+    id: string;
+    name: string;
+    role: string;
+  };
 }
 
 export const ManagementTeamAdmin = () => {
   const [teams, setTeams] = useState<ManagementTeam[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<ManagementTeam | null>(null);
@@ -37,6 +51,7 @@ export const ManagementTeamAdmin = () => {
 
   useEffect(() => {
     fetchTeams();
+    fetchTeamMembers();
   }, []);
 
   const fetchTeams = async () => {
@@ -47,20 +62,37 @@ export const ManagementTeamAdmin = () => {
         .order('name');
         
       if (error) throw error;
-      
-      // For now, we'll store members as a JSON array in description field
-      // In a real implementation, you'd want a separate junction table
-      const teamsWithMembers = (data || []).map(team => ({
-        ...team,
-        members: team.description ? JSON.parse(team.description).members || [] : []
-      }));
-      
-      setTeams(teamsWithMembers);
+      setTeams(data || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
       toast({
         title: "Error",
         description: "Failed to fetch management teams",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchTeamMembers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('management_team_members')
+        .select(`
+          *,
+          agents (
+            id,
+            name,
+            role
+          )
+        `);
+        
+      if (error) throw error;
+      setTeamMembers(data || []);
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch team members",
         variant: "destructive",
       });
     }
@@ -78,32 +110,38 @@ export const ManagementTeamAdmin = () => {
     }
 
     try {
-      const teamData = {
-        name: formData.name,
-        description: JSON.stringify({
-          description: formData.description,
-          members: formData.members
-        })
-      };
+      let teamId: string;
 
       if (editingTeam) {
+        // Update existing team
         const { error } = await supabase
           .from('management_teams')
-          .update(teamData)
+          .update({
+            name: formData.name,
+            description: formData.description
+          })
           .eq('id', editingTeam.id);
 
         if (error) throw error;
-        
+        teamId = editingTeam.id;
+
         toast({
           title: "Success",
           description: "Team updated successfully",
         });
       } else {
-        const { error } = await supabase
+        // Create new team
+        const { data, error } = await supabase
           .from('management_teams')
-          .insert([teamData]);
+          .insert([{
+            name: formData.name,
+            description: formData.description
+          }])
+          .select()
+          .single();
 
         if (error) throw error;
+        teamId = data.id;
         
         toast({
           title: "Success",
@@ -111,8 +149,32 @@ export const ManagementTeamAdmin = () => {
         });
       }
 
+      // Update team members
+      if (editingTeam) {
+        // Delete existing members
+        await supabase
+          .from('management_team_members')
+          .delete()
+          .eq('team_id', teamId);
+      }
+
+      // Add new members
+      if (formData.members.length > 0) {
+        const memberInserts = formData.members.map(agentId => ({
+          team_id: teamId,
+          agent_id: agentId
+        }));
+
+        const { error: membersError } = await supabase
+          .from('management_team_members')
+          .insert(memberInserts);
+
+        if (membersError) throw membersError;
+      }
+
       resetForm();
       fetchTeams();
+      fetchTeamMembers();
     } catch (error) {
       console.error('Error saving team:', error);
       toast({
@@ -138,6 +200,7 @@ export const ManagementTeamAdmin = () => {
       });
       
       fetchTeams();
+      fetchTeamMembers();
     } catch (error) {
       console.error('Error deleting team:', error);
       toast({
@@ -164,10 +227,20 @@ export const ManagementTeamAdmin = () => {
     setEditingTeam(team);
     setFormData({
       name: team.name,
-      description: team.description,
-      members: team.members
+      description: team.description || '',
+      members: getTeamMemberIds(team.id)
     });
     setIsEditDialogOpen(true);
+  };
+
+  const getTeamMemberIds = (teamId: string): string[] => {
+    return teamMembers
+      .filter(member => member.team_id === teamId)
+      .map(member => member.agent_id);
+  };
+
+  const getTeamMembers = (teamId: string) => {
+    return teamMembers.filter(member => member.team_id === teamId);
   };
 
   const addMember = () => {
@@ -291,53 +364,56 @@ export const ManagementTeamAdmin = () => {
       </div>
 
       <div className="grid gap-4">
-        {teams.map((team) => (
-          <Card key={team.id}>
-            <CardHeader>
-              <div className="flex justify-between items-start">
-                <div>
-                  <CardTitle>{team.name}</CardTitle>
-                  <CardDescription>
-                    {team.description || 'No description provided'}
-                  </CardDescription>
+        {teams.map((team) => {
+          const members = getTeamMembers(team.id);
+          return (
+            <Card key={team.id}>
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div>
+                    <CardTitle>{team.name}</CardTitle>
+                    <CardDescription>
+                      {team.description || 'No description provided'}
+                    </CardDescription>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(team)}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="text-red-600 hover:text-red-700"
+                      onClick={() => handleDelete(team.id)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
                 </div>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(team)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="text-red-600 hover:text-red-700"
-                    onClick={() => handleDelete(team.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <p className="text-sm font-medium">Members ({members.length}):</p>
+                  <div className="flex flex-wrap gap-2">
+                    {members.length > 0 ? (
+                      members.map((member) => (
+                        <Badge key={member.id} variant="outline">
+                          {member.agents.name} ({member.agents.role})
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-sm text-gray-500">No members assigned</p>
+                    )}
+                  </div>
                 </div>
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-2">
-                <p className="text-sm font-medium">Members ({team.members.length}):</p>
-                <div className="flex flex-wrap gap-2">
-                  {team.members.length > 0 ? (
-                    team.members.map((agentId) => (
-                      <Badge key={agentId} variant="outline">
-                        {getAgentName(agentId)}
-                      </Badge>
-                    ))
-                  ) : (
-                    <p className="text-sm text-gray-500">No members assigned</p>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Edit Dialog */}

@@ -1,23 +1,43 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Settings, Users } from "lucide-react";
+import { ArrowLeft, Settings, Users, LogOut } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ManagementTeamAdmin } from "@/components/ManagementTeamAdmin";
+import { AuthProvider, useAuth } from "@/components/AuthProvider";
+import LoginForm from "@/components/LoginForm";
 
-const AdminPanel = () => {
+const AdminPanelContent = () => {
+  const { user, logout } = useAuth();
+
+  if (!user) {
+    return <LoginForm />;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
       <div className="max-w-6xl mx-auto">
         <div className="mb-8">
-          <Link to="/">
-            <Button variant="ghost" className="mb-4">
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Home
-            </Button>
-          </Link>
+          <div className="flex justify-between items-start mb-4">
+            <Link to="/">
+              <Button variant="ghost">
+                <ArrowLeft className="mr-2 h-4 w-4" />
+                Back to Home
+              </Button>
+            </Link>
+            <div className="flex items-center gap-4">
+              <div className="text-right">
+                <p className="text-sm text-gray-600">Welcome back,</p>
+                <p className="font-medium">{user.username} ({user.role.replace('_', ' ')})</p>
+              </div>
+              <Button variant="outline" onClick={logout}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Logout
+              </Button>
+            </div>
+          </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <Settings className="h-8 w-8 text-blue-600" />
             Admin Panel
@@ -61,6 +81,14 @@ const AdminPanel = () => {
         </Card>
       </div>
     </div>
+  );
+};
+
+const AdminPanel = () => {
+  return (
+    <AuthProvider>
+      <AdminPanelContent />
+    </AuthProvider>
   );
 };
 

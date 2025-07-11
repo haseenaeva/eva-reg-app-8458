@@ -68,6 +68,42 @@ export type Database = {
           },
         ]
       }
+      management_team_members: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          team_id: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          team_id: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          team_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "management_team_members_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "management_team_members_team_id_fkey"
+            columns: ["team_id"]
+            isOneToOne: false
+            referencedRelation: "management_teams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       management_teams: {
         Row: {
           created_at: string
@@ -292,6 +328,33 @@ export type Database = {
         }
         Update: {
           id?: string | null
+        }
+        Relationships: []
+      }
+      user_profiles: {
+        Row: {
+          created_at: string
+          id: string
+          password_hash: string
+          role: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          password_hash: string
+          role: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          password_hash?: string
+          role?: string
+          updated_at?: string
+          username?: string
         }
         Relationships: []
       }
