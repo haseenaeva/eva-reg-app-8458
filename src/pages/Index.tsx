@@ -1,113 +1,116 @@
-
+import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Users, TreePine, Plus, Eye, CheckSquare } from "lucide-react";
-import { Link } from "react-router-dom";
+import { CheckSquare, Plus, Settings, TreePine, UserPlus } from "lucide-react";
+import { Link } from 'react-router-dom';
 
 const Index = () => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="max-w-6xl mx-auto">
-        <div className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-4 flex items-center justify-center gap-3">
-            <TreePine className="h-10 w-10 text-blue-600" />
-            Agent Hierarchy Management
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      {/* Header */}
+      <header className="bg-white shadow-md">
+        <div className="max-w-6xl mx-auto py-6 px-6">
+          <h1 className="text-3xl font-bold text-gray-900">
+            Panchayath Management System
           </h1>
-          <p className="text-xl text-gray-600 max-w-2xl mx-auto">
-            Manage your organization's staff hierarchy across panchayaths with coordinators, supervisors, group leaders, and P.R.Os
+          <p className="text-gray-600">
+            Streamline operations, enhance transparency, and empower communities
           </p>
         </div>
+      </header>
 
-        <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
-          <Card className="hover:shadow-lg transition-shadow duration-200 border-2 border-transparent hover:border-blue-200">
+      {/* Main Content */}
+      <main className="max-w-6xl mx-auto px-6 py-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          {/* Add Agents & Panchayaths */}
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
             <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-green-100 flex items-center justify-center">
-                <Plus className="h-8 w-8 text-green-600" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <UserPlus className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-2xl text-gray-900">Add Agents</CardTitle>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                Add Agents & Panchayaths
+              </CardTitle>
               <CardDescription className="text-gray-600">
-                Add new panchayaths and manage staff hierarchy including coordinators, supervisors, group leaders, and P.R.Os
+                Register new agents and define panchayath boundaries for efficient management
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Link to="/add-agents">
-                <Button size="lg" className="w-full bg-green-600 hover:bg-green-700">
-                  <Plus className="mr-2 h-5 w-5" />
-                  Add Agents
+                <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                  Add New Agents
                 </Button>
               </Link>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow duration-200 border-2 border-transparent hover:border-blue-200">
+          {/* View Hierarchy */}
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
             <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
-                <Eye className="h-8 w-8 text-blue-600" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <TreePine className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-2xl text-gray-900">View Hierarchy</CardTitle>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">
+                View Hierarchy
+              </CardTitle>
               <CardDescription className="text-gray-600">
-                Select a panchayath to view the complete organizational chart and staff structure
+                Visualize organizational structure and agent relationships in interactive charts
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Link to="/view-hierarchy">
-                <Button size="lg" variant="outline" className="w-full border-blue-600 text-blue-600 hover:bg-blue-50">
-                  <Users className="mr-2 h-5 w-5" />
-                  View Hierarchy
+                <Button className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                  View Organization Chart
                 </Button>
               </Link>
             </CardContent>
           </Card>
 
-          <Card className="hover:shadow-lg transition-shadow duration-200 border-2 border-transparent hover:border-purple-200">
+          {/* Task Management */}
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
             <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-purple-100 flex items-center justify-center">
-                <CheckSquare className="h-8 w-8 text-purple-600" />
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <CheckSquare className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-2xl text-gray-900">Task Management</CardTitle>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
+                Task Management
+              </CardTitle>
               <CardDescription className="text-gray-600">
-                Create, assign, and track tasks for your teams and agents with priority levels and status updates
+                Create, assign, and track tasks for teams and individual agents
               </CardDescription>
             </CardHeader>
             <CardContent className="text-center">
               <Link to="/task-management">
-                <Button size="lg" variant="outline" className="w-full border-purple-600 text-purple-600 hover:bg-purple-50">
-                  <CheckSquare className="mr-2 h-5 w-5" />
+                <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
                   Manage Tasks
                 </Button>
               </Link>
             </CardContent>
           </Card>
-        </div>
 
-        <div className="mt-16 text-center">
-          <div className="bg-white rounded-lg p-6 shadow-md max-w-2xl mx-auto">
-            <h2 className="text-lg font-semibold text-gray-900 mb-3">Hierarchy Structure</h2>
-            <div className="text-sm text-gray-600 space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Team Leader</span>
-                <span>→ Manages multiple panchayaths</span>
+          {/* Admin Panel */}
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-gray-500 to-gray-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Settings className="h-8 w-8 text-white" />
               </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Coordinator</span>
-                <span>→ Superior of panchayath, reports to Team Leader</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Supervisor</span>
-                <span>→ 1-4 persons under Coordinator</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">Group Leader</span>
-                <span>→ 5-10 persons under Supervisor</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="font-medium">P.R.O</span>
-                <span>→ 5-10 persons under Group Leader</span>
-              </div>
-            </div>
-          </div>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-gray-600 transition-colors">
+                Admin Panel
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Manage system settings, teams, and administrative configurations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link to="/admin-panel">
+                <Button className="w-full bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                  Access Admin Panel
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </div>
-      </div>
+      </main>
     </div>
   );
 };

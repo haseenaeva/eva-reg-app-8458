@@ -11,7 +11,6 @@ import { CalendarIcon, Loader2 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
 
 interface ManagementTeam {
   id: string;
@@ -25,16 +24,12 @@ export const AddTaskForm = () => {
     description: '',
     priority: 'normal' as 'high' | 'medium' | 'normal',
     allocatedToTeam: '',
-    allocatedToAgent: '',
     createdBy: '',
     dueDate: undefined as Date | undefined
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [managementTeams, setManagementTeams] = useState<ManagementTeam[]>([]);
-  const [selectedAgent, setSelectedAgent] = useState('');
-  const [phoneSearch, setPhoneSearch] = useState('');
   
-  const { agents } = useSupabaseHierarchy();
   const { toast } = useToast();
 
   // Fetch management teams on component mount
@@ -54,42 +49,6 @@ export const AddTaskForm = () => {
     
     fetchManagementTeams();
   }, []);
-
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'text-red-600';
-      case 'medium':
-        return 'text-orange-600';
-      case 'normal':
-        return 'text-green-600';
-      default:
-        return 'text-gray-600';
-    }
-  };
-
-  const searchAgentByPhone = () => {
-    if (!phoneSearch.trim()) return;
-    
-    const foundAgent = agents.find(agent => 
-      agent.phone && agent.phone.includes(phoneSearch.trim())
-    );
-    
-    if (foundAgent) {
-      setSelectedAgent(foundAgent.id);
-      setFormData(prev => ({ ...prev, allocatedToAgent: foundAgent.id }));
-      toast({
-        title: "Agent Found",
-        description: `Found ${foundAgent.name} (${foundAgent.role})`,
-      });
-    } else {
-      toast({
-        title: "Agent Not Found",
-        description: "No agent found with that phone number",
-        variant: "destructive",
-      });
-    }
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -111,7 +70,7 @@ export const AddTaskForm = () => {
           description: formData.description || null,
           priority: formData.priority,
           allocated_to_team: formData.allocatedToTeam || null,
-          allocated_to_agent: formData.allocatedToAgent || null,
+          allocated_to_agent: null,
           created_by: formData.createdBy || null,
           due_date: formData.dueDate ? format(formData.dueDate, 'yyyy-MM-dd') : null
         }]);
@@ -129,12 +88,9 @@ export const AddTaskForm = () => {
         description: '',
         priority: 'normal',
         allocatedToTeam: '',
-        allocatedToAgent: '',
         createdBy: '',
         dueDate: undefined
       });
-      setSelectedAgent('');
-      setPhoneSearch('');
     } catch (error) {
       console.error('Error creating task:', error);
       toast({
@@ -214,27 +170,6 @@ export const AddTaskForm = () => {
             ))}
           </SelectContent>
         </Select>
-      </div>
-
-      <div>
-        <Label>Search Agent by Phone Number</Label>
-        <div className="flex gap-2">
-          <Input
-            value={phoneSearch}
-            onChange={(e) => setPhoneSearch(e.target.value)}
-            placeholder="Enter phone number to search"
-          />
-          <Button type="button" onClick={searchAgentByPhone} variant="outline">
-            Search
-          </Button>
-        </div>
-        {selectedAgent && (
-          <div className="mt-2 p-2 bg-green-50 rounded border">
-            <p className="text-sm text-green-800">
-              Selected: {agents.find(a => a.id === selectedAgent)?.name} ({agents.find(a => a.id === selectedAgent)?.role})
-            </p>
-          </div>
-        )}
       </div>
 
       <div>
