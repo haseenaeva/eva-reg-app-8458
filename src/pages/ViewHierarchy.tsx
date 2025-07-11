@@ -1,13 +1,15 @@
-
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { ArrowLeft, TreePine, Loader2, Edit, Trash2 } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, TreePine, Loader2, Edit, Trash2, BarChart3, Table } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
 import { HorizontalOrganizationChart } from "@/components/HorizontalOrganizationChart";
+import { OrganizationChartView } from "@/components/OrganizationChartView";
+import { HierarchyTable } from "@/components/HierarchyTable";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 
@@ -165,12 +167,46 @@ const ViewHierarchy = () => {
         {selectedPanchayath && selectedPanchayathData && (
           <Card className="bg-white border shadow-sm">
             <CardContent className="p-6">
-              <HorizontalOrganizationChart 
-                panchayathId={selectedPanchayath}
-                agents={selectedPanchayathAgents}
-                panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
-                onRefresh={refetch}
-              />
+              <Tabs defaultValue="chart" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="chart" className="flex items-center gap-2">
+                    <BarChart3 className="h-4 w-4" />
+                    Chart View
+                  </TabsTrigger>
+                  <TabsTrigger value="compact" className="flex items-center gap-2">
+                    <TreePine className="h-4 w-4" />
+                    Compact View
+                  </TabsTrigger>
+                  <TabsTrigger value="table" className="flex items-center gap-2">
+                    <Table className="h-4 w-4" />
+                    Table View
+                  </TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="chart" className="mt-6">
+                  <OrganizationChartView 
+                    panchayathId={selectedPanchayath}
+                    agents={selectedPanchayathAgents}
+                    panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="compact" className="mt-6">
+                  <HorizontalOrganizationChart 
+                    panchayathId={selectedPanchayath}
+                    agents={selectedPanchayathAgents}
+                    panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
+                    onRefresh={refetch}
+                  />
+                </TabsContent>
+                
+                <TabsContent value="table" className="mt-6">
+                  <HierarchyTable 
+                    agents={selectedPanchayathAgents}
+                    panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
+                  />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         )}
