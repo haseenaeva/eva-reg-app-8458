@@ -62,7 +62,7 @@ export const PanchayathNotes = () => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (panchayathId) {
+      if (panchayathId && panchayathId !== 'all') {
         query = query.eq('panchayath_id', panchayathId);
       }
 
@@ -86,15 +86,11 @@ export const PanchayathNotes = () => {
   }, []);
 
   useEffect(() => {
-    if (selectedPanchayath) {
-      fetchNotes(selectedPanchayath);
-    } else {
-      fetchNotes();
-    }
+    fetchNotes(selectedPanchayath);
   }, [selectedPanchayath]);
 
   const addNote = async () => {
-    if (!selectedPanchayath || !newNote.trim() || !createdBy.trim()) {
+    if (!selectedPanchayath || selectedPanchayath === 'all' || !newNote.trim() || !createdBy.trim()) {
       toast({
         title: "Error",
         description: "Please select a panchayath, enter a note, and provide your name",
@@ -210,7 +206,7 @@ export const PanchayathNotes = () => {
                   <SelectValue placeholder="Filter by panchayath" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Panchayaths</SelectItem>
+                  <SelectItem value="all">All Panchayaths</SelectItem>
                   {panchayaths.map((panchayath) => (
                     <SelectItem key={panchayath.id} value={panchayath.id}>
                       {panchayath.name}
