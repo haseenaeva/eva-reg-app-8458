@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckSquare, Settings, TreePine, Users } from "lucide-react";
+import { CheckSquare, Settings, TreePine, Users, FileText } from "lucide-react";
 import { Link } from 'react-router-dom';
 
 const Index = () => {
@@ -84,6 +84,28 @@ const Index = () => {
               <Link to="/task-management">
                 <Button className="w-full bg-gradient-to-r from-purple-500 to-pink-600 hover:from-purple-600 hover:to-pink-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
                   Manage Tasks
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Panchayath Notes */}
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-orange-500 to-red-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <FileText className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-orange-600 transition-colors">
+                Panchayath Notes
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                View and manage notes about panchayath status and updates
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link to="/panchayath-notes">
+                <Button className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                  View Notes
                 </Button>
               </Link>
             </CardContent>

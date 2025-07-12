@@ -2,14 +2,12 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { ArrowLeft, Users, Loader2, Building } from "lucide-react";
+import { ArrowLeft, Users, Loader2 } from "lucide-react";
 import { Link } from "react-router-dom";
 import { AddAgentForm } from "@/components/AddAgentForm";
 import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
-import { PanchayathNotes } from "@/components/PanchayathNotes";
 
 const AddAgents = () => {
-  const [activeTab, setActiveTab] = useState<'agent' | 'notes'>('agent');
   const { panchayaths, agents, isLoading } = useSupabaseHierarchy();
 
   if (isLoading) {
@@ -38,64 +36,21 @@ const AddAgents = () => {
             </Button>
           </Link>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Staff Management</h1>
-          <p className="text-gray-600">Manage your staff and track panchayath updates</p>
-        </div>
-
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <Card 
-            className={`cursor-pointer transition-all duration-200 ${
-              activeTab === 'agent' 
-                ? 'ring-2 ring-blue-500 bg-blue-50' 
-                : 'hover:shadow-md'
-            }`}
-            onClick={() => setActiveTab('agent')}
-          >
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-2 h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <Users className="h-6 w-6 text-blue-600" />
-              </div>
-              <CardTitle className="text-lg">Add Agent</CardTitle>
-              <CardDescription>Add coordinators, supervisors, group leaders, and P.R.Os</CardDescription>
-            </CardHeader>
-          </Card>
-
-          <Card 
-            className={`cursor-pointer transition-all duration-200 ${
-              activeTab === 'notes' 
-                ? 'ring-2 ring-green-500 bg-green-50' 
-                : 'hover:shadow-md'
-            }`}
-            onClick={() => setActiveTab('notes')}
-          >
-            <CardHeader className="text-center">
-              <div className="mx-auto mb-2 h-12 w-12 rounded-full bg-green-100 flex items-center justify-center">
-                <Building className="h-6 w-6 text-green-600" />
-              </div>
-              <CardTitle className="text-lg">Panchayath Notes</CardTitle>
-              <CardDescription>Add and view notes about panchayath status and updates</CardDescription>
-            </CardHeader>
-          </Card>
+          <p className="text-gray-600">Manage your staff members</p>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {activeTab === 'agent' ? <Users className="h-5 w-5" /> : <Building className="h-5 w-5" />}
-              {activeTab === 'agent' ? 'New Agent' : 'Panchayath Notes'}
+              <Users className="h-5 w-5" />
+              New Agent
             </CardTitle>
             <CardDescription>
-              {activeTab === 'agent' 
-                ? 'Add a new agent to the hierarchy' 
-                : 'Add notes and comments about panchayath status'
-              }
+              Add a new agent to the hierarchy
             </CardDescription>
           </CardHeader>
           <CardContent>
-            {activeTab === 'agent' ? (
-              <AddAgentForm />
-            ) : (
-              <PanchayathNotes />
-            )}
+            <AddAgentForm />
           </CardContent>
         </Card>
 
