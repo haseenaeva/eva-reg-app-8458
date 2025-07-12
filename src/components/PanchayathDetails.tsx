@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { MessageSquare, Plus, RefreshCw, Building } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
@@ -35,6 +36,7 @@ export const PanchayathDetails = ({ panchayath }: PanchayathDetailsProps) => {
   const [newNote, setNewNote] = useState('');
   const [createdBy, setCreatedBy] = useState('');
   const [loading, setLoading] = useState(false);
+  const [dialogOpen, setDialogOpen] = useState(false);
   const { toast } = useToast();
 
   const fetchNotes = async () => {
@@ -90,6 +92,7 @@ export const PanchayathDetails = ({ panchayath }: PanchayathDetailsProps) => {
 
       setNewNote('');
       setCreatedBy('');
+      setDialogOpen(false);
       fetchNotes();
     } catch (error) {
       console.error('Error adding note:', error);
@@ -127,44 +130,6 @@ export const PanchayathDetails = ({ panchayath }: PanchayathDetailsProps) => {
         </CardContent>
       </Card>
 
-      {/* Add New Note Form */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Add New Note
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="createdBy">Your Name</Label>
-            <Input
-              id="createdBy"
-              value={createdBy}
-              onChange={(e) => setCreatedBy(e.target.value)}
-              placeholder="Enter your name"
-              required
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="note">Note</Label>
-            <Textarea
-              id="note"
-              value={newNote}
-              onChange={(e) => setNewNote(e.target.value)}
-              placeholder="Enter your note about panchayath status or updates"
-              rows={4}
-              required
-            />
-          </div>
-
-          <Button onClick={addNote} disabled={loading} className="w-full">
-            {loading ? "Adding..." : "Add Note"}
-          </Button>
-        </CardContent>
-      </Card>
-
       {/* Notes List */}
       <Card>
         <CardHeader>
@@ -173,13 +138,62 @@ export const PanchayathDetails = ({ panchayath }: PanchayathDetailsProps) => {
               <MessageSquare className="h-5 w-5" />
               Notes ({notes.length})
             </CardTitle>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              onClick={fetchNotes}
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+            <div className="flex items-center gap-2">
+              <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+                <DialogTrigger asChild>
+                  <Button className="flex items-center gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add New Note
+                  </Button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Add New Note</DialogTitle>
+                    <DialogDescription>
+                      Add a note about {panchayath.name} status or updates
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="createdBy">Your Name</Label>
+                      <Input
+                        id="createdBy"
+                        value={createdBy}
+                        onChange={(e) => setCreatedBy(e.target.value)}
+                        placeholder="Enter your name"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="note">Note</Label>
+                      <Textarea
+                        id="note"
+                        value={newNote}
+                        onChange={(e) => setNewNote(e.target.value)}
+                        placeholder="Enter your note about panchayath status or updates"
+                        rows={4}
+                        required
+                      />
+                    </div>
+                  </div>
+                  <DialogFooter>
+                    <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                      Cancel
+                    </Button>
+                    <Button onClick={addNote} disabled={loading}>
+                      {loading ? "Adding..." : "Add Note"}
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                onClick={fetchNotes}
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
