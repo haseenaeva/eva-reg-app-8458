@@ -128,6 +128,41 @@ export type Database = {
         }
         Relationships: []
       }
+      panchayath_notes: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          note: string
+          panchayath_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          note: string
+          panchayath_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          note?: string
+          panchayath_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "panchayath_notes_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: false
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       panchayaths: {
         Row: {
           created_at: string
