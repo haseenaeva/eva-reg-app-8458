@@ -3,9 +3,10 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Settings, Users, LogOut } from "lucide-react";
+import { ArrowLeft, Settings, Users, LogOut, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
 import { ManagementTeamAdmin } from "@/components/ManagementTeamAdmin";
+import { AddPanchayathForm } from "@/components/AddPanchayathForm";
 import { AuthProvider, useAuth } from "@/components/AuthProvider";
 import LoginForm from "@/components/LoginForm";
 
@@ -48,10 +49,14 @@ const AdminPanelContent = () => {
         <Card>
           <CardContent className="p-6">
             <Tabs defaultValue="teams" className="w-full">
-              <TabsList className="grid w-full grid-cols-2">
+              <TabsList className="grid w-full grid-cols-3">
                 <TabsTrigger value="teams" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Management Teams
+                </TabsTrigger>
+                <TabsTrigger value="panchayaths" className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4" />
+                  Panchayaths
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
@@ -61,6 +66,20 @@ const AdminPanelContent = () => {
               
               <TabsContent value="teams" className="mt-6">
                 <ManagementTeamAdmin />
+              </TabsContent>
+              
+              <TabsContent value="panchayaths" className="mt-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Panchayath Management</CardTitle>
+                    <CardDescription>
+                      Add and manage panchayaths in the system
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <AddPanchayathForm />
+                  </CardContent>
+                </Card>
               </TabsContent>
               
               <TabsContent value="settings" className="mt-6">

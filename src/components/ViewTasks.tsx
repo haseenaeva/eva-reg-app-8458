@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, MessageSquare, RefreshCw, Eye } from "lucide-react";
+import { CalendarIcon, MessageSquare, RefreshCw, Eye, Users } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -37,11 +37,18 @@ interface TaskRemark {
   created_at: string;
 }
 
+interface ManagementTeam {
+  id: string;
+  name: string;
+  description: string;
+}
+
 export const ViewTasks = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [filteredTasks, setFilteredTasks] = useState<Task[]>([]);
+  const [managementTeams, setManagementTeams] = useState<ManagementTeam[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
-  const [statusFilter, setStatusFilter] = useState<string>('all');
+  const [statusFilter, setStatusFilter] = useState<string>('pending');
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [remarksDialogOpen, setRemarksDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
@@ -73,6 +80,20 @@ export const ViewTasks = () => {
     }
   };
 
+  const fetchManagementTeams = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('management_teams')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setManagementTeams(data || []);
+    } catch (error) {
+      console.error('Error fetching management teams:', error);
+    }
+  };
+
   const fetchTaskRemarks = async (taskId: string) => {
     try {
       const { data, error } = await supabase
@@ -90,10 +111,14 @@ export const ViewTasks = () => {
 
   useEffect(() => {
     fetchTasks();
+    fetchManagementTeams();
   }, []);
 
   useEffect(() => {
     let filtered = tasks;
+
+    // Always filter out completed tasks by default
+    filtered = filtered.filter(task => task.status !== 'completed');
 
     // Filter by date
     if (selectedDate) {
@@ -141,6 +166,11 @@ export const ViewTasks = () => {
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
     }
+  };
+
+  const getTeamName = (teamId: string) => {
+    const team = managementTeams.find(t => t.id === teamId);
+    return team ? team.name : 'Unknown Team';
   };
 
   const updateTaskStatus = async (taskId: string, newStatus: 'pending' | 'completed' | 'cancelled') => {
@@ -268,7 +298,6 @@ export const ViewTasks = () => {
             <SelectContent>
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
-              <SelectItem value="completed">Completed</SelectItem>
               <SelectItem value="cancelled">Cancelled</SelectItem>
             </SelectContent>
           </Select>
@@ -301,7 +330,7 @@ export const ViewTasks = () => {
       <div className="space-y-4">
         {filteredTasks.length === 0 ? (
           <div className="text-center py-8">
-            <p className="text-gray-600">No tasks found matching your filters.</p>
+            <p className="text-gray-600">No pending tasks found matching your filters.</p>
           </div>
         ) : (
           filteredTasks.map((task) => (
@@ -339,6 +368,12 @@ export const ViewTasks = () => {
                       <strong>Created By:</strong> {task.created_by}
                     </div>
                   )}
+                  {task.allocated_to_team && (
+                    <div className="flex items-center gap-1">
+                      <Users className="h-4 w-4" />
+                      <strong>Team:</strong> {getTeamName(task.allocated_to_team)}
+                    </div>
+                  )}
                 </div>
                 
                 <div className="flex gap-2 flex-wrap">
@@ -362,7 +397,7 @@ export const ViewTasks = () => {
                     onClick={() => openRemarksDialog(task)}
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
-                    Remarks
+                    View Remarks ({taskRemarks.filter(r => r.task_id === task.id).length})
                   </Button>
                 </div>
               </CardContent>
@@ -377,11 +412,26 @@ export const ViewTasks = () => {
           <DialogHeader>
             <DialogTitle>Task Remarks: {selectedTask?.title}</DialogTitle>
             <DialogDescription>
-              Add remarks and view task attendance history
+              View task progress and add new remarks
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-4">
+            {/* Task Details */}
+            <div className="border-b pb-4">
+              <h3 className="font-medium mb-2">Task Details</h3>
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                <div><strong>Status:</strong> {selectedTask?.status}</div>
+                <div><strong>Priority:</strong> {selectedTask?.priority}</div>
+                {selectedTask?.allocated_to_team && (
+                  <div><strong>Allocated Team:</strong> {getTeamName(selectedTask.allocated_to_team)}</div>
+                )}
+                {selectedTask?.due_date && (
+                  <div><strong>Due Date:</strong> {format(new Date(selectedTask.due_date), 'PPP')}</div>
+                )}
+              </div>
+            </div>
+
             {/* Add New Remark */}
             <div className="border-b pb-4">
               <h3 className="font-medium mb-2">Add New Remark</h3>
@@ -401,7 +451,7 @@ export const ViewTasks = () => {
                     id="newRemark"
                     value={newRemark}
                     onChange={(e) => setNewRemark(e.target.value)}
-                    placeholder="Enter your remark about task attendance or updates"
+                    placeholder="Enter your remark about task progress or updates"
                     rows={3}
                   />
                 </div>
@@ -413,11 +463,11 @@ export const ViewTasks = () => {
 
             {/* Existing Remarks */}
             <div>
-              <h3 className="font-medium mb-2">Task History</h3>
+              <h3 className="font-medium mb-2">Task Progress History</h3>
               {taskRemarks.length === 0 ? (
                 <p className="text-gray-500 text-sm">No remarks yet.</p>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-3 max-h-64 overflow-y-auto">
                   {taskRemarks.map((remark) => (
                     <div key={remark.id} className="bg-gray-50 p-3 rounded-lg">
                       <div className="flex justify-between items-start mb-1">
