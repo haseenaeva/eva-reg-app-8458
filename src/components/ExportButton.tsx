@@ -15,10 +15,38 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
+  const buildHierarchyTree = () => {
+    const coordinators = agents.filter(agent => agent.role === 'coordinator');
+    let hierarchyText = '';
+
+    coordinators.forEach((coordinator) => {
+      hierarchyText += `. ${coordinator.name} (Coordinator)\n`;
+      
+      const supervisors = agents.filter(agent => agent.superior_id === coordinator.id && agent.role === 'supervisor');
+      supervisors.forEach((supervisor) => {
+        hierarchyText += `\t. ${supervisor.name} (Supervisor)\n`;
+        
+        const groupLeaders = agents.filter(agent => agent.superior_id === supervisor.id && agent.role === 'group-leader');
+        groupLeaders.forEach((groupLeader) => {
+          hierarchyText += `\t\t. ${groupLeader.name} (Group Leader)\n`;
+          
+          const pros = agents.filter(agent => agent.superior_id === groupLeader.id && agent.role === 'pro');
+          pros.forEach((pro) => {
+            hierarchyText += `\t\t\t. ${pro.name} (P.R.O)\n`;
+          });
+        });
+      });
+    });
+
+    return hierarchyText;
+  };
+
   const exportToPDF = async () => {
     setIsExporting(true);
     try {
-      // Create HTML content for PDF
+      const hierarchyTree = buildHierarchyTree();
+      
+      // Create HTML content for PDF with tree structure
       const htmlContent = `
         <html>
           <head>
@@ -26,38 +54,27 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
             <style>
               body { font-family: Arial, sans-serif; margin: 20px; }
               h1 { color: #333; border-bottom: 2px solid #333; padding-bottom: 10px; }
-              table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-              th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-              th { background-color: #f2f2f2; }
-              .role-coordinator { background-color: #fef2f2; }
-              .role-supervisor { background-color: #f0f9ff; }
-              .role-group-leader { background-color: #fef3c7; }
-              .role-pro { background-color: #f0fdf4; }
+              .hierarchy-tree { 
+                font-family: monospace; 
+                white-space: pre-wrap; 
+                line-height: 1.6; 
+                font-size: 14px;
+                background-color: #f8f9fa;
+                padding: 20px;
+                border-radius: 8px;
+                border: 1px solid #dee2e6;
+              }
+              .coordinator { font-weight: bold; color: #dc3545; }
+              .supervisor { font-weight: bold; color: #6f42c1; }
+              .group-leader { font-weight: bold; color: #fd7e14; }
+              .pro { font-weight: bold; color: #198754; }
             </style>
           </head>
           <body>
             <h1>Hierarchy Report - ${panchayathName}</h1>
             <p>Generated on: ${new Date().toLocaleDateString()}</p>
-            <table>
-              <thead>
-                <tr>
-                  <th>Name</th>
-                  <th>Role</th>
-                  <th>Ward</th>
-                  <th>Phone</th>
-                </tr>
-              </thead>
-              <tbody>
-                ${agents.map(agent => `
-                  <tr class="role-${agent.role}">
-                    <td>${agent.name}</td>
-                    <td>${agent.role.charAt(0).toUpperCase() + agent.role.slice(1).replace('-', ' ')}</td>
-                    <td>${agent.ward || '-'}</td>
-                    <td>${agent.phone || '-'}</td>
-                  </tr>
-                `).join('')}
-              </tbody>
-            </table>
+            <p>Total Agents: ${agents.length}</p>
+            <div class="hierarchy-tree">${hierarchyTree}</div>
           </body>
         </html>
       `;
@@ -67,7 +84,7 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `hierarchy-${panchayathName.replace(/[^a-zA-Z0-9]/g, '-')}.html`;
+      link.download = `hierarchy-tree-${panchayathName.replace(/[^a-zA-Z0-9]/g, '-')}.html`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -75,13 +92,13 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
 
       toast({
         title: "Export Successful",
-        description: "Hierarchy report exported as HTML file (can be converted to PDF)"
+        description: "Hierarchy tree exported as HTML file"
       });
     } catch (error) {
       console.error('Export error:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export hierarchy report",
+        description: "Failed to export hierarchy tree",
         variant: "destructive"
       });
     } finally {
@@ -92,23 +109,17 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
   const exportToExcel = async () => {
     setIsExporting(true);
     try {
-      // Create CSV content
-      const csvContent = [
-        ['Name', 'Role', 'Ward', 'Phone'],
-        ...agents.map(agent => [
-          agent.name,
-          agent.role.charAt(0).toUpperCase() + agent.role.slice(1).replace('-', ' '),
-          agent.ward || '',
-          agent.phone || ''
-        ])
-      ].map(row => row.map(field => `"${field}"`).join(',')).join('\n');
+      const hierarchyTree = buildHierarchyTree();
+      
+      // Create CSV content with hierarchy tree
+      const csvContent = `Hierarchy Tree - ${panchayathName}\nGenerated on: ${new Date().toLocaleDateString()}\nTotal Agents: ${agents.length}\n\n${hierarchyTree}`;
 
       // Create blob and download
-      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const blob = new Blob([csvContent], { type: 'text/plain;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.download = `hierarchy-${panchayathName.replace(/[^a-zA-Z0-9]/g, '-')}.csv`;
+      link.download = `hierarchy-tree-${panchayathName.replace(/[^a-zA-Z0-9]/g, '-')}.txt`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -116,13 +127,13 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
 
       toast({
         title: "Export Successful",
-        description: "Hierarchy data exported as CSV file"
+        description: "Hierarchy tree exported as text file"
       });
     } catch (error) {
       console.error('Export error:', error);
       toast({
         title: "Export Failed",
-        description: "Failed to export hierarchy data",
+        description: "Failed to export hierarchy tree",
         variant: "destructive"
       });
     } finally {
@@ -137,17 +148,17 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
       <DropdownMenuTrigger asChild>
         <Button variant="outline" disabled={isExporting}>
           <Download className="h-4 w-4 mr-2" />
-          {isExporting ? 'Exporting...' : 'Export'}
+          {isExporting ? 'Exporting...' : 'Export Tree'}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
         <DropdownMenuItem onClick={exportToPDF}>
           <FileText className="h-4 w-4 mr-2" />
-          Export as PDF
+          Export Tree as HTML
         </DropdownMenuItem>
         <DropdownMenuItem onClick={exportToExcel}>
           <FileSpreadsheet className="h-4 w-4 mr-2" />
-          Export as Excel
+          Export Tree as Text
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
