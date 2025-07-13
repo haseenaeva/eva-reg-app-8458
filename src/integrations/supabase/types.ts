@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_ratings: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          rated_by: string
+          rating: number
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          rated_by: string
+          rating: number
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          rated_by?: string
+          rating?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_ratings_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "agents"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agents: {
         Row: {
           created_at: string

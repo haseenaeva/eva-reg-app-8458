@@ -13,6 +13,7 @@ import { HierarchyTable } from "@/components/HierarchyTable";
 import { AgentRatings } from "@/components/AgentRatings";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { ExportButton } from "@/components/ExportButton";
 
 const ViewHierarchy = () => {
   const [selectedPanchayath, setSelectedPanchayath] = useState<string>('');
@@ -104,22 +105,32 @@ const ViewHierarchy = () => {
             <CardDescription>Choose a panchayath to view its complete hierarchy</CardDescription>
           </CardHeader>
           <CardContent>
-            <Select value={selectedPanchayath} onValueChange={setSelectedPanchayath}>
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="Choose a panchayath to view hierarchy" />
-              </SelectTrigger>
-              <SelectContent>
-                {panchayaths.length === 0 ? (
-                  <SelectItem value="none" disabled>No panchayaths available</SelectItem>
-                ) : (
-                  panchayaths.map((panchayath) => (
-                    <SelectItem key={panchayath.id} value={panchayath.id}>
-                      {panchayath.name} - {panchayath.district}, {panchayath.state}
-                    </SelectItem>
-                  ))
-                )}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-4 items-end">
+              <div className="flex-1">
+                <Select value={selectedPanchayath} onValueChange={setSelectedPanchayath}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Choose a panchayath to view hierarchy" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {panchayaths.length === 0 ? (
+                      <SelectItem value="none" disabled>No panchayaths available</SelectItem>
+                    ) : (
+                      panchayaths.map((panchayath) => (
+                        <SelectItem key={panchayath.id} value={panchayath.id}>
+                          {panchayath.name} - {panchayath.district}, {panchayath.state}
+                        </SelectItem>
+                      ))
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+              {selectedPanchayath && selectedPanchayathData && (
+                <ExportButton 
+                  agents={selectedPanchayathAgents}
+                  panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
+                />
+              )}
+            </div>
           </CardContent>
         </Card>
 

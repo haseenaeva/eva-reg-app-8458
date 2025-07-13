@@ -4,163 +4,154 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useSupabaseHierarchy, Agent } from "@/hooks/useSupabaseHierarchy";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Agent } from "@/hooks/useSupabaseHierarchy";
 
-export const AddAgentForm = () => {
-  const [formData, setFormData] = useState({
-    name: '',
-    role: '' as Agent['role'] | '',
-    panchayathId: '',
-    superiorId: '',
-    email: '',
-    phone: '',
-    ward: ''
-  });
+interface AddAgentFormProps {
+  panchayathId: string;
+  agents: Agent[];
+  onAgentAdded: () => void;
+  addAgent: (agent: Omit<Agent, 'id' | 'created_at' | 'updated_at'>) => Promise<Agent>;
+}
+
+export const AddAgentForm = ({ panchayathId, agents, onAgentAdded, addAgent }: AddAgentFormProps) => {
+  const [name, setName] = useState('');
+  const [role, setRole] = useState<Agent['role'] | ''>('');
+  const [superiorId, setSuperiorId] = useState('');
+  const [phone, setPhone] = useState('');
+  const [ward, setWard] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
-  const { panchayaths, addAgent, getSuperiorOptions } = useSupabaseHierarchy();
 
-  const superiorOptions = formData.panchayathId && formData.role ? 
-    getSuperiorOptions(formData.panchayathId, formData.role) : [];
+  const getSuperiorOptions = (selectedRole: Agent['role']) => {
+    const roleHierarchy = {
+      'supervisor': 'coordinator',
+      'group-leader': 'supervisor', 
+      'pro': 'group-leader'
+    } as const;
+    
+    const superiorRole = roleHierarchy[selectedRole as keyof typeof roleHierarchy];
+    if (!superiorRole) return [];
+    
+    return agents.filter(agent => 
+      agent.panchayath_id === panchayathId && agent.role === superiorRole
+    );
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.name || !formData.role || !formData.panchayathId) return;
+    if (!name || !role) return;
 
     setIsSubmitting(true);
     try {
       await addAgent({
-        name: formData.name,
-        role: formData.role,
-        panchayath_id: formData.panchayathId,
-        superior_id: formData.superiorId || undefined,
-        email: formData.email || undefined,
-        phone: formData.phone || undefined,
-        ward: formData.ward || undefined
+        name,
+        role: role as Agent['role'],
+        panchayath_id: panchayathId,
+        superior_id: superiorId || null,
+        phone: phone || null,
+        ward: ward || null,
       });
-      setFormData({
-        name: '',
-        role: '',
-        panchayathId: '',
-        superiorId: '',
-        email: '',
-        phone: '',
-        ward: ''
-      });
+
+      setName('');
+      setRole('');
+      setSuperiorId('');
+      setPhone('');
+      setWard('');
+      onAgentAdded();
     } catch (error) {
-      console.error('Error submitting form:', error);
+      console.error('Error adding agent:', error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const roleOptions = [
-    { value: 'coordinator', label: 'Coordinator' },
-    { value: 'supervisor', label: 'Supervisor' },
-    { value: 'group-leader', label: 'Group Leader' },
-    { value: 'pro', label: 'P.R.O' }
-  ] as const;
+  const superiorOptions = role ? getSuperiorOptions(role as Agent['role']) : [];
+  const showSuperiorSelect = role && role !== 'coordinator';
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
-      <div>
-        <Label htmlFor="name">Agent Name</Label>
-        <Input
-          id="name"
-          type="text"
-          value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-          placeholder="Enter agent name"
-          required
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="role">Role</Label>
-        <Select value={formData.role} onValueChange={(value) => setFormData(prev => ({ ...prev, role: value as Agent['role'], superiorId: '' }))}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select agent role" />
-          </SelectTrigger>
-          <SelectContent>
-            {roleOptions.map((option) => (
-              <SelectItem key={option.value} value={option.value}>
-                {option.label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      <div>
-        <Label htmlFor="panchayath">Panchayath</Label>
-        <Select value={formData.panchayathId} onValueChange={(value) => setFormData(prev => ({ ...prev, panchayathId: value, superiorId: '' }))}>
-          <SelectTrigger>
-            <SelectValue placeholder="Select panchayath" />
-          </SelectTrigger>
-          <SelectContent>
-            {panchayaths.map((panchayath) => (
-              <SelectItem key={panchayath.id} value={panchayath.id}>
-                {panchayath.name} - {panchayath.district}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      
-      {formData.role && formData.role !== 'coordinator' && superiorOptions.length > 0 && (
-        <div>
-          <Label htmlFor="superior">Reports To</Label>
-          <Select value={formData.superiorId} onValueChange={(value) => setFormData(prev => ({ ...prev, superiorId: value }))}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select superior" />
-            </SelectTrigger>
-            <SelectContent>
-              {superiorOptions.map((superior) => (
-                <SelectItem key={superior.id} value={superior.id}>
-                  {superior.name} ({superior.role})
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-      
-      <div>
-        <Label htmlFor="ward">Ward</Label>
-        <Input
-          id="ward"
-          type="text"
-          value={formData.ward}
-          onChange={(e) => setFormData(prev => ({ ...prev, ward: e.target.value }))}
-          placeholder="Enter ward number or name"
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="email">Email (Optional)</Label>
-        <Input
-          id="email"
-          type="email"
-          value={formData.email}
-          onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-          placeholder="Enter email address"
-        />
-      </div>
-      
-      <div>
-        <Label htmlFor="phone">Phone (Optional)</Label>
-        <Input
-          id="phone"
-          type="tel"
-          value={formData.phone}
-          onChange={(e) => setFormData(prev => ({ ...prev, phone: e.target.value }))}
-          placeholder="Enter phone number"
-        />
-      </div>
-      
-      <Button type="submit" className="w-full" disabled={isSubmitting}>
-        {isSubmitting ? "Adding..." : "Add Agent"}
-      </Button>
-    </form>
+    <Card>
+      <CardHeader>
+        <CardTitle>Add New Agent</CardTitle>
+        <CardDescription>Add a new agent to this panchayath</CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <Label htmlFor="name">Name *</Label>
+              <Input
+                id="name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter agent name"
+                required
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="role">Role *</Label>
+              <Select value={role} onValueChange={(value) => setRole(value as Agent['role'])}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select role" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="coordinator">Coordinator</SelectItem>
+                  <SelectItem value="supervisor">Supervisor</SelectItem>
+                  <SelectItem value="group-leader">Group Leader</SelectItem>
+                  <SelectItem value="pro">P.R.O</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {showSuperiorSelect && (
+              <div>
+                <Label htmlFor="superior">Superior {superiorOptions.length > 0 ? '*' : ''}</Label>
+                <Select value={superiorId} onValueChange={setSuperiorId}>
+                  <SelectTrigger>
+                    <SelectValue placeholder={
+                      superiorOptions.length > 0 
+                        ? "Select superior" 
+                        : "No superiors available"
+                    } />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {superiorOptions.map((superior) => (
+                      <SelectItem key={superior.id} value={superior.id}>
+                        {superior.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div>
+              <Label htmlFor="phone">Phone</Label>
+              <Input
+                id="phone"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Enter phone number"
+                type="tel"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="ward">Ward</Label>
+              <Input
+                id="ward"
+                value={ward}
+                onChange={(e) => setWard(e.target.value)}
+                placeholder="Enter ward"
+              />
+            </div>
+          </div>
+
+          <Button type="submit" disabled={isSubmitting} className="w-full">
+            {isSubmitting ? 'Adding Agent...' : 'Add Agent'}
+          </Button>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
