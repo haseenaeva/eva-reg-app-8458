@@ -78,17 +78,11 @@ const PanchayathNotes = () => {
           </Card>
         ) : (
           <div>
-            <Button 
-              variant="outline" 
-              onClick={() => setSelectedPanchayath(null)}
-              className="mb-4"
-            >
-              <ArrowLeft className="mr-2 h-4 w-4" />
-              Back to Panchayaths
-            </Button>
-            
             {selectedPanchayathData && (
-              <PanchayathDetails panchayath={selectedPanchayathData} />
+              <PanchayathDetails 
+                panchayath={selectedPanchayathData} 
+                onBack={() => setSelectedPanchayath(null)}
+              />
             )}
           </div>
         )}
