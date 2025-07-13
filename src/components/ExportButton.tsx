@@ -5,6 +5,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Download, FileText, FileSpreadsheet } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { useToast } from "@/hooks/use-toast";
+import * as XLSX from 'xlsx';
 
 interface ExportButtonProps {
   agents: Agent[];
@@ -15,30 +16,148 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
   const [isExporting, setIsExporting] = useState(false);
   const { toast } = useToast();
 
+  const buildCompactHierarchy = () => {
+    const coordinators = agents.filter(agent => agent.role === 'coordinator');
+    const hierarchyData: any[] = [];
+
+    coordinators.forEach((coordinator) => {
+      // Add coordinator row
+      hierarchyData.push({
+        'Level 1 (Coordinator)': coordinator.name,
+        'Level 2 (Supervisor)': '',
+        'Level 3 (Group Leader)': '',
+        'Level 4 (P.R.O)': '',
+        'Phone': coordinator.phone || '',
+        'Email': coordinator.email || '',
+        'Ward': coordinator.ward || ''
+      });
+      
+      const supervisors = agents.filter(agent => agent.superior_id === coordinator.id && agent.role === 'supervisor');
+      supervisors.forEach((supervisor) => {
+        // Add supervisor row
+        hierarchyData.push({
+          'Level 1 (Coordinator)': '',
+          'Level 2 (Supervisor)': supervisor.name,
+          'Level 3 (Group Leader)': '',
+          'Level 4 (P.R.O)': '',
+          'Phone': supervisor.phone || '',
+          'Email': supervisor.email || '',
+          'Ward': supervisor.ward || ''
+        });
+        
+        const groupLeaders = agents.filter(agent => agent.superior_id === supervisor.id && agent.role === 'group-leader');
+        groupLeaders.forEach((groupLeader) => {
+          // Add group leader row
+          hierarchyData.push({
+            'Level 1 (Coordinator)': '',
+            'Level 2 (Supervisor)': '',
+            'Level 3 (Group Leader)': groupLeader.name,
+            'Level 4 (P.R.O)': '',
+            'Phone': groupLeader.phone || '',
+            'Email': groupLeader.email || '',
+            'Ward': groupLeader.ward || ''
+          });
+          
+          const pros = agents.filter(agent => agent.superior_id === groupLeader.id && agent.role === 'pro');
+          pros.forEach((pro) => {
+            // Add P.R.O row
+            hierarchyData.push({
+              'Level 1 (Coordinator)': '',
+              'Level 2 (Supervisor)': '',
+              'Level 3 (Group Leader)': '',
+              'Level 4 (P.R.O)': pro.name,
+              'Phone': pro.phone || '',
+              'Email': pro.email || '',
+              'Ward': pro.ward || ''
+            });
+          });
+        });
+      });
+    });
+
+    return hierarchyData;
+  };
+
   const buildHierarchyTree = () => {
     const coordinators = agents.filter(agent => agent.role === 'coordinator');
     let hierarchyText = '';
 
     coordinators.forEach((coordinator) => {
-      hierarchyText += `. ${coordinator.name} (Coordinator)\n`;
+      hierarchyText += `${coordinator.name} (Coordinator)\n`;
       
       const supervisors = agents.filter(agent => agent.superior_id === coordinator.id && agent.role === 'supervisor');
       supervisors.forEach((supervisor) => {
-        hierarchyText += `\t. ${supervisor.name} (Supervisor)\n`;
+        hierarchyText += `\t${supervisor.name} (Supervisor)\n`;
         
         const groupLeaders = agents.filter(agent => agent.superior_id === supervisor.id && agent.role === 'group-leader');
         groupLeaders.forEach((groupLeader) => {
-          hierarchyText += `\t\t. ${groupLeader.name} (Group Leader)\n`;
+          hierarchyText += `\t\t${groupLeader.name} (Group Leader)\n`;
           
           const pros = agents.filter(agent => agent.superior_id === groupLeader.id && agent.role === 'pro');
           pros.forEach((pro) => {
-            hierarchyText += `\t\t\t. ${pro.name} (P.R.O)\n`;
+            hierarchyText += `\t\t\t${pro.name} (P.R.O)\n`;
           });
         });
       });
     });
 
     return hierarchyText;
+  };
+
+  const exportToExcel = async () => {
+    setIsExporting(true);
+    try {
+      const hierarchyData = buildCompactHierarchy();
+      
+      // Create workbook and worksheet
+      const wb = XLSX.utils.book_new();
+      const ws = XLSX.utils.json_to_sheet(hierarchyData);
+
+      // Set column widths
+      ws['!cols'] = [
+        { wch: 25 }, // Level 1 (Coordinator)
+        { wch: 25 }, // Level 2 (Supervisor)
+        { wch: 25 }, // Level 3 (Group Leader)
+        { wch: 25 }, // Level 4 (P.R.O)
+        { wch: 15 }, // Phone
+        { wch: 25 }, // Email
+        { wch: 10 }  // Ward
+      ];
+
+      // Add worksheet to workbook
+      XLSX.utils.book_append_sheet(wb, ws, "Hierarchy");
+
+      // Create info sheet
+      const infoData = [
+        { Info: 'Panchayath', Value: panchayathName },
+        { Info: 'Generated On', Value: new Date().toLocaleDateString() },
+        { Info: 'Total Agents', Value: agents.length },
+        { Info: 'Coordinators', Value: agents.filter(a => a.role === 'coordinator').length },
+        { Info: 'Supervisors', Value: agents.filter(a => a.role === 'supervisor').length },
+        { Info: 'Group Leaders', Value: agents.filter(a => a.role === 'group-leader').length },
+        { Info: 'P.R.O', Value: agents.filter(a => a.role === 'pro').length }
+      ];
+      const infoWs = XLSX.utils.json_to_sheet(infoData);
+      infoWs['!cols'] = [{ wch: 20 }, { wch: 30 }];
+      XLSX.utils.book_append_sheet(wb, infoWs, "Summary");
+
+      // Save file
+      XLSX.writeFile(wb, `hierarchy-${panchayathName.replace(/[^a-zA-Z0-9]/g, '-')}.xlsx`);
+
+      toast({
+        title: "Export Successful",
+        description: "Hierarchy exported as Excel file"
+      });
+    } catch (error) {
+      console.error('Export error:', error);
+      toast({
+        title: "Export Failed",
+        description: "Failed to export hierarchy",
+        variant: "destructive"
+      });
+    } finally {
+      setIsExporting(false);
+    }
   };
 
   const exportToPDF = async () => {
@@ -64,10 +183,6 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
                 border-radius: 8px;
                 border: 1px solid #dee2e6;
               }
-              .coordinator { font-weight: bold; color: #dc3545; }
-              .supervisor { font-weight: bold; color: #6f42c1; }
-              .group-leader { font-weight: bold; color: #fd7e14; }
-              .pro { font-weight: bold; color: #198754; }
             </style>
           </head>
           <body>
@@ -106,16 +221,16 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
     }
   };
 
-  const exportToExcel = async () => {
+  const exportToText = async () => {
     setIsExporting(true);
     try {
       const hierarchyTree = buildHierarchyTree();
       
-      // Create CSV content with hierarchy tree
-      const csvContent = `Hierarchy Tree - ${panchayathName}\nGenerated on: ${new Date().toLocaleDateString()}\nTotal Agents: ${agents.length}\n\n${hierarchyTree}`;
+      // Create text content with hierarchy tree
+      const textContent = `Hierarchy Tree - ${panchayathName}\nGenerated on: ${new Date().toLocaleDateString()}\nTotal Agents: ${agents.length}\n\n${hierarchyTree}`;
 
       // Create blob and download
-      const blob = new Blob([csvContent], { type: 'text/plain;charset=utf-8;' });
+      const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
@@ -152,13 +267,17 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent>
-        <DropdownMenuItem onClick={exportToPDF}>
-          <FileText className="h-4 w-4 mr-2" />
-          Export Tree as HTML
-        </DropdownMenuItem>
         <DropdownMenuItem onClick={exportToExcel}>
           <FileSpreadsheet className="h-4 w-4 mr-2" />
-          Export Tree as Text
+          Export as Excel (XLSX)
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={exportToPDF}>
+          <FileText className="h-4 w-4 mr-2" />
+          Export as HTML
+        </DropdownMenuItem>
+        <DropdownMenuItem onClick={exportToText}>
+          <FileText className="h-4 w-4 mr-2" />
+          Export as Text
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
