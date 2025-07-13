@@ -14,6 +14,7 @@ import { AgentRatings } from "@/components/AgentRatings";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { ExportButton } from "@/components/ExportButton";
+import { ImportButton } from "@/components/ImportButton";
 
 const ViewHierarchy = () => {
   const [selectedPanchayath, setSelectedPanchayath] = useState<string>('');
@@ -125,16 +126,21 @@ const ViewHierarchy = () => {
                 </Select>
               </div>
               {selectedPanchayath && selectedPanchayathData && (
-                <ExportButton 
-                  agents={selectedPanchayathAgents}
-                  panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
-                />
+                <div className="flex gap-2">
+                  <ExportButton 
+                    agents={selectedPanchayathAgents}
+                    panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
+                  />
+                  <ImportButton 
+                    panchayathId={selectedPanchayath}
+                    onRefresh={refetch}
+                  />
+                </div>
               )}
             </div>
           </CardContent>
         </Card>
 
-        {/* Panchayaths Management */}
         {panchayaths.length > 0 && (
           <Card className="mb-8 bg-white border shadow-sm">
             <CardHeader>
