@@ -4,7 +4,7 @@ import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { ChevronDown, ChevronRight, User, Mail, Phone, Users, Building2 } from "lucide-react";
+import { ChevronDown, ChevronRight, User, Phone, Users, Building2 } from "lucide-react";
 
 interface OrganizationChartProps {
   panchayathId: string;
@@ -122,12 +122,6 @@ export const EnhancedOrganizationChart = ({ panchayathId, agents, panchayathName
           </CardHeader>
           <CardContent className="pt-0">
             <div className="flex gap-4 text-sm text-gray-600 mb-3">
-              {agent.email && (
-                <div className="flex items-center gap-1">
-                  <Mail className="h-3 w-3" />
-                  <span className="truncate">{agent.email}</span>
-                </div>
-              )}
               {agent.phone && (
                 <div className="flex items-center gap-1">
                   <Phone className="h-3 w-3" />

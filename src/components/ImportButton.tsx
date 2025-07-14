@@ -77,7 +77,6 @@ export const ImportButton = ({ panchayathId, onRefresh }: ImportButtonProps) => 
             panchayath_id: panchayathId,
             superior_id: null,
             phone: row['Phone'] || null,
-            email: row['Email'] || null,
             ward: row['Ward'] || null
           });
         }
@@ -93,7 +92,6 @@ export const ImportButton = ({ panchayathId, onRefresh }: ImportButtonProps) => 
             panchayath_id: panchayathId,
             superior_id: coordinator ? agentNameToId[coordinator] : null,
             phone: row['Phone'] || null,
-            email: row['Email'] || null,
             ward: row['Ward'] || null
           });
         }
@@ -109,7 +107,6 @@ export const ImportButton = ({ panchayathId, onRefresh }: ImportButtonProps) => 
             panchayath_id: panchayathId,
             superior_id: supervisor ? agentNameToId[supervisor] : null,
             phone: row['Phone'] || null,
-            email: row['Email'] || null,
             ward: row['Ward'] || null
           });
         }
@@ -125,7 +122,6 @@ export const ImportButton = ({ panchayathId, onRefresh }: ImportButtonProps) => 
             panchayath_id: panchayathId,
             superior_id: groupLeader ? agentNameToId[groupLeader] : null,
             phone: row['Phone'] || null,
-            email: row['Email'] || null,
             ward: row['Ward'] || null
           });
         }

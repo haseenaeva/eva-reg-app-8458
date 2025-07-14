@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Trash2, Edit, Plus, User, Mail, Phone, RefreshCw } from "lucide-react";
+import { Trash2, Edit, Plus, User, Phone, RefreshCw } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -28,7 +28,6 @@ export const HorizontalOrganizationChart = ({
   const [agentToEdit, setAgentToEdit] = useState<Agent | null>(null);
   const [editFormData, setEditFormData] = useState({
     name: '',
-    email: '',
     phone: '',
     ward: ''
   });
@@ -82,7 +81,6 @@ export const HorizontalOrganizationChart = ({
         error
       } = await supabase.from('agents').update({
         name: editFormData.name,
-        email: editFormData.email || null,
         phone: editFormData.phone || null,
         ward: editFormData.ward || null
       }).eq('id', agentToEdit.id);
@@ -141,7 +139,6 @@ export const HorizontalOrganizationChart = ({
               setAgentToEdit(agent);
               setEditFormData({
                 name: agent.name,
-                email: agent.email || '',
                 phone: agent.phone || '',
                 ward: agent.ward || ''
               });
@@ -163,10 +160,6 @@ export const HorizontalOrganizationChart = ({
         <div className="space-y-1">
           {agent.ward && <div className="text-xs text-gray-600">Ward: {agent.ward}</div>}
           <div className="flex gap-3 text-xs text-gray-600"> {/* Smaller text */}
-            {agent.email && <div className="flex items-center gap-1">
-                <Mail className="h-3 w-3" />
-                <span className="truncate max-w-24">{agent.email}</span>
-              </div>}
             {agent.phone && <div className="flex items-center gap-1">
                 <Phone className="h-3 w-3" />
                 <span className="text-red-700">{agent.phone}</span>
@@ -280,11 +273,6 @@ export const HorizontalOrganizationChart = ({
             }))} placeholder="Agent name" />
             </div>
             <div>
-              <Label htmlFor="edit-email">Email</Label>
-              <Input id="edit-email" type="email" value={editFormData.email} onChange={e => setEditFormData(prev => ({
-              ...prev,
-              email: e.target.value
-            }))} placeholder="Email address" />
             </div>
             <div>
               <Label htmlFor="edit-phone">Phone</Label>

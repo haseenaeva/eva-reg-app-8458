@@ -57,12 +57,11 @@ export const HierarchyTable = ({ agents, panchayathName }: HierarchyTableProps) 
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Name</TableHead>
-                <TableHead>Role</TableHead>
-                <TableHead>Superior</TableHead>
-                <TableHead>Ward</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Phone</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>Role</TableHead>
+              <TableHead>Superior</TableHead>
+              <TableHead>Ward</TableHead>
+              <TableHead>Phone</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -76,7 +75,6 @@ export const HierarchyTable = ({ agents, panchayathName }: HierarchyTableProps) 
                   </TableCell>
                   <TableCell>{getSuperiorName(agent.superior_id)}</TableCell>
                   <TableCell>{agent.ward || '-'}</TableCell>
-                  <TableCell className="text-sm">{agent.email || '-'}</TableCell>
                   <TableCell>{agent.phone || '-'}</TableCell>
                 </TableRow>
               ))}

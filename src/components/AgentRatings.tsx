@@ -2,7 +2,7 @@
 import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone } from "lucide-react";
+import { User, Phone } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { StarRating } from "./StarRating";
 
@@ -85,12 +85,6 @@ export const AgentRatings = ({ agents, panchayathName }: AgentRatingsProps) => {
                   <div className="flex gap-4 text-sm text-gray-600">
                     {agent.ward && (
                       <span>Ward: {agent.ward}</span>
-                    )}
-                    {agent.email && (
-                      <div className="flex items-center gap-1">
-                        <Mail className="h-3 w-3" />
-                        <span className="truncate max-w-32">{agent.email}</span>
-                      </div>
                     )}
                     {agent.phone && (
                       <div className="flex items-center gap-1">

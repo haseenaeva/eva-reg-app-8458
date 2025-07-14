@@ -28,7 +28,6 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
         'Level 3 (Group Leader)': '',
         'Level 4 (P.R.O)': '',
         'Phone': coordinator.phone || '',
-        'Email': coordinator.email || '',
         'Ward': coordinator.ward || ''
       });
       
@@ -41,7 +40,6 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
           'Level 3 (Group Leader)': '',
           'Level 4 (P.R.O)': '',
           'Phone': supervisor.phone || '',
-          'Email': supervisor.email || '',
           'Ward': supervisor.ward || ''
         });
         
@@ -54,7 +52,6 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
             'Level 3 (Group Leader)': groupLeader.name,
             'Level 4 (P.R.O)': '',
             'Phone': groupLeader.phone || '',
-            'Email': groupLeader.email || '',
             'Ward': groupLeader.ward || ''
           });
           
@@ -67,7 +64,6 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
               'Level 3 (Group Leader)': '',
               'Level 4 (P.R.O)': pro.name,
               'Phone': pro.phone || '',
-              'Email': pro.email || '',
               'Ward': pro.ward || ''
             });
           });
@@ -120,7 +116,6 @@ export const ExportButton = ({ agents, panchayathName }: ExportButtonProps) => {
         { wch: 25 }, // Level 3 (Group Leader)
         { wch: 25 }, // Level 4 (P.R.O)
         { wch: 15 }, // Phone
-        { wch: 25 }, // Email
         { wch: 10 }  // Ward
       ];
 

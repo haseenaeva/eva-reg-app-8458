@@ -7,7 +7,6 @@ export interface Agent {
   role: AgentRole;
   panchayathId: string;
   superiorId?: string;
-  email?: string;
   phone?: string;
   createdAt: Date;
 }
@@ -23,7 +22,6 @@ export interface Panchayath {
 export interface TeamLeader {
   id: string;
   name: string;
-  email?: string;
   phone?: string;
   panchayathIds: string[];
   createdAt: Date;

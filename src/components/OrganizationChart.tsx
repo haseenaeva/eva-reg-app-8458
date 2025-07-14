@@ -3,7 +3,7 @@ import { useHierarchyStore } from "@/hooks/useHierarchyStore";
 import { ROLE_HIERARCHY } from "@/types/hierarchy";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Mail, Phone, Users } from "lucide-react";
+import { User, Phone, Users } from "lucide-react";
 
 interface OrganizationChartProps {
   panchayathId: string;
@@ -43,12 +43,6 @@ export const OrganizationChart = ({ panchayathId }: OrganizationChartProps) => {
       </CardHeader>
       <CardContent className="pt-0">
         <div className="flex gap-4 text-sm text-gray-600 mb-3">
-          {agent.email && (
-            <div className="flex items-center gap-1">
-              <Mail className="h-3 w-3" />
-              {agent.email}
-            </div>
-          )}
           {agent.phone && (
             <div className="flex items-center gap-1">
               <Phone className="h-3 w-3" />

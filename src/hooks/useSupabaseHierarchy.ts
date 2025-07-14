@@ -8,7 +8,6 @@ export interface Agent {
   role: 'coordinator' | 'supervisor' | 'group-leader' | 'pro';
   panchayath_id: string;
   superior_id?: string;
-  email?: string;
   phone?: string;
   ward?: string;
   created_at: string;
@@ -27,7 +26,6 @@ export interface Panchayath {
 export interface TeamLeader {
   id: string;
   name: string;
-  email?: string;
   phone?: string;
   created_at: string;
   updated_at: string;

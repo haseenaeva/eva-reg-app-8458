@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { User, Mail, Phone, ChevronDown, ChevronRight } from "lucide-react";
+import { User, Phone, ChevronDown, ChevronRight } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 
 interface OrganizationChartViewProps {
@@ -97,12 +97,6 @@ export const OrganizationChartView = ({
                 <div className="text-xs text-gray-600">Ward: {agent.ward}</div>
               )}
               <div className="flex flex-col gap-1 text-xs text-gray-600">
-                {agent.email && (
-                  <div className="flex items-center gap-1">
-                    <Mail className="h-3 w-3" />
-                    <span className="truncate max-w-32">{agent.email}</span>
-                  </div>
-                )}
                 {agent.phone && (
                   <div className="flex items-center gap-1">
                     <Phone className="h-3 w-3" />

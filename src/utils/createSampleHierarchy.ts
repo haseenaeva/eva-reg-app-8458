@@ -9,7 +9,6 @@ export const createSampleHierarchyFile = () => {
       'Level 3 (Group Leader)': 'Safeena',
       'Level 4 (P.R.O)': 'Rasheeda',
       'Phone': '7025715877',
-      'Email': 'rasheeda@example.com',
       'Ward': '7'
     },
     {
@@ -18,7 +17,6 @@ export const createSampleHierarchyFile = () => {
       'Level 3 (Group Leader)': 'Safeena',
       'Level 4 (P.R.O)': 'Agent Pro 2',
       'Phone': '7025715878',
-      'Email': 'agent2@example.com',
       'Ward': '6'
     },
     {
@@ -27,7 +25,6 @@ export const createSampleHierarchyFile = () => {
       'Level 3 (Group Leader)': 'Group Leader 2',
       'Level 4 (P.R.O)': 'Agent Pro 3',
       'Phone': '7025715879',
-      'Email': 'agent3@example.com',
       'Ward': '5'
     },
     {
@@ -36,7 +33,6 @@ export const createSampleHierarchyFile = () => {
       'Level 3 (Group Leader)': 'Group Leader 3',
       'Level 4 (P.R.O)': 'Agent Pro 4',
       'Phone': '7025715880',
-      'Email': 'agent4@example.com',
       'Ward': '5'
     },
     {
@@ -45,7 +41,6 @@ export const createSampleHierarchyFile = () => {
       'Level 3 (Group Leader)': 'Group Leader 4',
       'Level 4 (P.R.O)': 'Agent Pro 5',
       'Phone': '7025715881',
-      'Email': 'agent5@example.com',
       'Ward': '5'
     }
   ];
