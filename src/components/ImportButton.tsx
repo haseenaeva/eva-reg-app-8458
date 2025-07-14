@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Upload, FileSpreadsheet } from "lucide-react";
+import { Upload, FileSpreadsheet, Download } from "lucide-react";
+import { createSampleHierarchyFile } from "@/utils/createSampleHierarchy";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import * as XLSX from 'xlsx';
@@ -174,15 +175,26 @@ export const ImportButton = ({ panchayathId, onRefresh }: ImportButtonProps) => 
           </DialogHeader>
           
           <div className="space-y-4">
-            <div>
-              <Label htmlFor="excel-file">Select Excel File</Label>
-              <Input
-                id="excel-file"
-                type="file"
-                accept=".xlsx"
-                onChange={handleFileSelect}
-                className="mt-1"
-              />
+            <div className="flex items-center justify-between">
+              <div>
+                <Label htmlFor="excel-file">Select Excel File</Label>
+                <Input
+                  id="excel-file"
+                  type="file"
+                  accept=".xlsx"
+                  onChange={handleFileSelect}
+                  className="mt-1"
+                />
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={createSampleHierarchyFile}
+                className="ml-4"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Download Sample
+              </Button>
             </div>
             
             {selectedFile && (
