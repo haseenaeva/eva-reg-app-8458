@@ -68,42 +68,42 @@ export const AgentRatings = ({ agents, panchayathName }: AgentRatingsProps) => {
         <p className="text-sm text-gray-600">Rate agents to track their working progress</p>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {sortedAgents.map((agent) => (
-            <div key={agent.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-              <div className="flex items-center gap-4">
-                <div className="p-2 rounded-full bg-gray-200">
-                  <User className="h-4 w-4 text-gray-600" />
-                </div>
-                <div>
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className="font-medium text-gray-900">{agent.name}</h3>
+            <Card key={agent.id} className="hover:shadow-md transition-shadow">
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center space-y-4">
+                  <div className="p-3 rounded-full bg-gray-200">
+                    <User className="h-8 w-8 text-gray-600" />
+                  </div>
+                  <div className="space-y-2">
+                    <h3 className="font-semibold text-lg text-gray-900">{agent.name}</h3>
                     <Badge className={getRoleColor(agent.role)}>
                       {getRoleLabel(agent.role)}
                     </Badge>
                   </div>
-                  <div className="flex gap-4 text-sm text-gray-600">
+                  <div className="space-y-1 text-sm text-gray-600">
                     {agent.ward && (
-                      <span>Ward: {agent.ward}</span>
+                      <div>Ward: {agent.ward}</div>
                     )}
                     {agent.phone && (
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center justify-center gap-1">
                         <Phone className="h-3 w-3" />
                         <span>{agent.phone}</span>
                       </div>
                     )}
                   </div>
+                  <div className="pt-2">
+                    <StarRating
+                      agentId={agent.id}
+                      agentName={agent.name}
+                      initialRating={ratings[agent.id] || 0}
+                      onRatingChange={(rating) => handleRatingChange(agent.id, rating)}
+                    />
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-4">
-                <StarRating
-                  agentId={agent.id}
-                  agentName={agent.name}
-                  initialRating={ratings[agent.id] || 0}
-                  onRatingChange={(rating) => handleRatingChange(agent.id, rating)}
-                />
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           ))}
         </div>
       </CardContent>

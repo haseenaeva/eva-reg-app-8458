@@ -21,7 +21,16 @@ export const OrganizationChartView = ({
   agents, 
   panchayathName 
 }: OrganizationChartViewProps) => {
-  const [collapsedNodes, setCollapsedNodes] = useState<CollapsedNodes>({});
+  // Initialize collapsed state - by default show only coordinators and supervisors
+  const [collapsedNodes, setCollapsedNodes] = useState<CollapsedNodes>(() => {
+    const initialState: CollapsedNodes = {};
+    agents.forEach(agent => {
+      if (agent.role === 'supervisor') {
+        initialState[agent.id] = true; // Collapse supervisors by default
+      }
+    });
+    return initialState;
+  });
 
   const toggleNode = (agentId: string) => {
     setCollapsedNodes(prev => ({

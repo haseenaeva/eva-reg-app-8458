@@ -226,22 +226,31 @@ const AddAgents = () => {
         {panchayaths.length > 0 && (
           <Card className="mt-8">
             <CardHeader>
-              <CardTitle>Existing Panchayaths ({panchayaths.length})</CardTitle>
+              <CardTitle>Existing Panchayaths</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid gap-4">
-                {panchayaths.map((panchayath) => (
-                  <div key={panchayath.id} className="flex items-center justify-between p-4 border rounded-lg bg-white shadow-sm">
-                    <div>
-                      <h3 className="font-medium">{panchayath.name}</h3>
-                      <p className="text-sm text-gray-600">{panchayath.district}, {panchayath.state}</p>
-                    </div>
-                    <div className="text-sm text-gray-500">
-                      {agents.filter(a => a.panchayath_id === panchayath.id).length} agents
-                    </div>
-                  </div>
-                ))}
-              </div>
+              <Select>
+                <SelectTrigger>
+                  <SelectValue placeholder={`Select from ${panchayaths.length} panchayaths`} />
+                </SelectTrigger>
+                <SelectContent>
+                  {panchayaths.map((panchayath) => (
+                    <SelectItem key={panchayath.id} value={panchayath.id}>
+                      <div className="flex items-center justify-between w-full">
+                        <div>
+                          <span className="font-medium">{panchayath.name}</span>
+                          <span className="text-sm text-gray-600 ml-2">
+                            {panchayath.district}, {panchayath.state}
+                          </span>
+                        </div>
+                        <span className="text-sm text-gray-500 ml-4">
+                          {agents.filter(a => a.panchayath_id === panchayath.id).length} agents
+                        </span>
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </CardContent>
           </Card>
         )}

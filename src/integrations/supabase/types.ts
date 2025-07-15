@@ -163,6 +163,27 @@ export type Database = {
         }
         Relationships: []
       }
+      panchayath_locations: {
+        Row: {
+          district: string
+          id: string
+          panchayath: string
+          state: string
+        }
+        Insert: {
+          district: string
+          id?: string
+          panchayath: string
+          state: string
+        }
+        Update: {
+          district?: string
+          id?: string
+          panchayath?: string
+          state?: string
+        }
+        Relationships: []
+      }
       panchayath_notes: {
         Row: {
           created_at: string

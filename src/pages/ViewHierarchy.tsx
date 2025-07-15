@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, TreePine, Loader2, Edit, Trash2, BarChart3, Table, Star } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { ArrowLeft, TreePine, Loader2, Edit, Trash2, BarChart3, Table, Star, Search, Users } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
 import { HorizontalOrganizationChart } from "@/components/HorizontalOrganizationChart";
@@ -20,12 +21,20 @@ const ViewHierarchy = () => {
   const [selectedPanchayath, setSelectedPanchayath] = useState<string>('');
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [panchayathToDelete, setPanchayathToDelete] = useState<string>('');
+  const [showPanchayaths, setShowPanchayaths] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   const { panchayaths, agents, isLoading, refetch } = useSupabaseHierarchy();
   const { toast } = useToast();
 
   const selectedPanchayathData = panchayaths.find(p => p.id === selectedPanchayath);
   const selectedPanchayathAgents = selectedPanchayath ? 
     agents.filter(agent => agent.panchayath_id === selectedPanchayath) : [];
+
+  // Filter agents based on search query
+  const filteredAgents = selectedPanchayathAgents.filter(agent => 
+    agent.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    (agent.phone && agent.phone.includes(searchQuery))
+  );
 
   const deletePanchayath = async (panchayathId: string) => {
     try {
@@ -143,48 +152,73 @@ const ViewHierarchy = () => {
 
         {panchayaths.length > 0 && (
           <Card className="mb-8 bg-white border shadow-sm">
-            <CardHeader>
-              <CardTitle>Manage Panchayaths ({panchayaths.length})</CardTitle>
+            <CardHeader className="flex flex-row items-center justify-between">
+              <div>
+                <CardTitle>Manage Panchayaths</CardTitle>
+              </div>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowPanchayaths(!showPanchayaths)}
+                className="flex items-center gap-2"
+              >
+                <Users className="h-4 w-4" />
+                {showPanchayaths ? 'Hide' : 'Show'} Panchayaths ({panchayaths.length})
+              </Button>
             </CardHeader>
-            <CardContent>
-              <div className="grid gap-4">
-                {panchayaths.map((panchayath) => (
-                  <div key={panchayath.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div>
-                      <h3 className="font-medium text-gray-900">{panchayath.name}</h3>
-                      <p className="text-sm text-gray-600">{panchayath.district}, {panchayath.state}</p>
-                    </div>
-                    <div className="flex items-center gap-4">
-                      <span className="text-sm text-gray-500">
-                        {agents.filter(a => a.panchayath_id === panchayath.id).length} agents
-                      </span>
-                      <div className="flex gap-2">
-                        <Button variant="outline" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
-                          onClick={() => {
-                            setPanchayathToDelete(panchayath.id);
-                            setDeleteDialogOpen(true);
-                          }}
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
+            {showPanchayaths && (
+              <CardContent>
+                <div className="grid gap-4">
+                  {panchayaths.map((panchayath) => (
+                    <div key={panchayath.id} className="flex items-center justify-between p-4 border rounded-lg bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div>
+                        <h3 className="font-medium text-gray-900">{panchayath.name}</h3>
+                        <p className="text-sm text-gray-600">{panchayath.district}, {panchayath.state}</p>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm text-gray-500">
+                          {agents.filter(a => a.panchayath_id === panchayath.id).length} agents
+                        </span>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm">
+                            <Edit className="h-4 w-4" />
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                            onClick={() => {
+                              setPanchayathToDelete(panchayath.id);
+                              setDeleteDialogOpen(true);
+                            }}
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
+                  ))}
+                </div>
+              </CardContent>
+            )}
           </Card>
         )}
 
         {selectedPanchayath && selectedPanchayathData && (
           <Card className="bg-white border shadow-sm">
             <CardContent className="p-6">
+              {/* Search Bar */}
+              <div className="mb-6">
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <Input
+                    placeholder="Search agents by name or mobile number..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
+              </div>
+
               <Tabs defaultValue="chart" className="w-full">
                 <TabsList className="grid w-full grid-cols-4">
                   <TabsTrigger value="chart" className="flex items-center gap-2">
@@ -208,7 +242,7 @@ const ViewHierarchy = () => {
                 <TabsContent value="chart" className="mt-6">
                   <OrganizationChartView 
                     panchayathId={selectedPanchayath}
-                    agents={selectedPanchayathAgents}
+                    agents={filteredAgents}
                     panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
                   />
                 </TabsContent>
@@ -216,7 +250,7 @@ const ViewHierarchy = () => {
                 <TabsContent value="compact" className="mt-6">
                   <HorizontalOrganizationChart 
                     panchayathId={selectedPanchayath}
-                    agents={selectedPanchayathAgents}
+                    agents={filteredAgents}
                     panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
                     onRefresh={refetch}
                   />
@@ -224,14 +258,14 @@ const ViewHierarchy = () => {
                 
                 <TabsContent value="table" className="mt-6">
                   <HierarchyTable 
-                    agents={selectedPanchayathAgents}
+                    agents={filteredAgents}
                     panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
                   />
                 </TabsContent>
 
                 <TabsContent value="ratings" className="mt-6">
                   <AgentRatings 
-                    agents={selectedPanchayathAgents}
+                    agents={filteredAgents}
                     panchayathName={`${selectedPanchayathData.name} - ${selectedPanchayathData.district}, ${selectedPanchayathData.state}`}
                   />
                 </TabsContent>

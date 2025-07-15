@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, MessageSquare, RefreshCw, Users, Eye } from "lucide-react";
+import { CalendarIcon, MessageSquare, RefreshCw, Users, Eye, Edit, Trash2 } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -53,11 +53,19 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>();
   const [priorityFilter, setPriorityFilter] = useState<string>('all');
   const [remarksDialogOpen, setRemarksDialogOpen] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [taskRemarks, setTaskRemarks] = useState<TaskRemark[]>([]);
   const [newRemark, setNewRemark] = useState('');
   const [remarkBy, setRemarkBy] = useState('');
   const [loading, setLoading] = useState(true);
+  const [editForm, setEditForm] = useState({
+    title: '',
+    description: '',
+    priority: 'normal' as 'high' | 'medium' | 'normal',
+    due_date: ''
+  });
   const { toast } = useToast();
 
   const fetchTasks = async () => {
@@ -238,6 +246,100 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
     fetchTaskRemarks(task.id);
   };
 
+  const openEditDialog = (task: Task) => {
+    setSelectedTask(task);
+    setEditForm({
+      title: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      due_date: task.due_date ? format(new Date(task.due_date), 'yyyy-MM-dd') : ''
+    });
+    setEditDialogOpen(true);
+  };
+
+  const openDeleteDialog = (task: Task) => {
+    setSelectedTask(task);
+    setDeleteDialogOpen(true);
+  };
+
+  const updateTask = async () => {
+    if (!selectedTask || !editForm.title.trim()) {
+      toast({
+        title: "Error",
+        description: "Please fill in the required fields",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+          title: editForm.title,
+          description: editForm.description,
+          priority: editForm.priority,
+          due_date: editForm.due_date || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', selectedTask.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Task updated successfully",
+      });
+
+      setEditDialogOpen(false);
+      fetchTasks();
+    } catch (error) {
+      console.error('Error updating task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update task",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const deleteTask = async () => {
+    if (!selectedTask) return;
+
+    try {
+      // First delete task remarks
+      const { error: remarksError } = await supabase
+        .from('task_remarks')
+        .delete()
+        .eq('task_id', selectedTask.id);
+
+      if (remarksError) throw remarksError;
+
+      // Then delete the task
+      const { error: taskError } = await supabase
+        .from('tasks')
+        .delete()
+        .eq('id', selectedTask.id);
+
+      if (taskError) throw taskError;
+
+      toast({
+        title: "Success",
+        description: "Task deleted successfully",
+      });
+
+      setDeleteDialogOpen(false);
+      fetchTasks();
+    } catch (error) {
+      console.error('Error deleting task:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete task",
+        variant: "destructive",
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center py-8">
@@ -380,7 +482,26 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
                     onClick={() => openRemarksDialog(task)}
                   >
                     <MessageSquare className="mr-2 h-4 w-4" />
-                    View Remarks ({taskRemarks.filter(r => r.task_id === task.id).length})
+                    View Remarks
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => openEditDialog(task)}
+                  >
+                    <Edit className="mr-2 h-4 w-4" />
+                    Edit
+                  </Button>
+                  
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="text-red-600 hover:text-red-700 hover:bg-red-50 border-red-200"
+                    onClick={() => openDeleteDialog(task)}
+                  >
+                    <Trash2 className="mr-2 h-4 w-4" />
+                    Delete
                   </Button>
                 </div>
               </CardContent>
@@ -472,6 +593,95 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemarksDialogOpen(false)}>
               Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Task Dialog */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Task</DialogTitle>
+            <DialogDescription>
+              Update task details
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="editTitle">Task Title *</Label>
+              <Input
+                id="editTitle"
+                value={editForm.title}
+                onChange={(e) => setEditForm(prev => ({ ...prev, title: e.target.value }))}
+                placeholder="Enter task title"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="editDescription">Description</Label>
+              <Textarea
+                id="editDescription"
+                value={editForm.description}
+                onChange={(e) => setEditForm(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Enter task description"
+                rows={3}
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="editPriority">Priority</Label>
+              <Select value={editForm.priority} onValueChange={(value) => setEditForm(prev => ({ ...prev, priority: value as 'high' | 'medium' | 'normal' }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="high">High</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="normal">Normal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Label htmlFor="editDueDate">Due Date</Label>
+              <Input
+                id="editDueDate"
+                type="date"
+                value={editForm.due_date}
+                onChange={(e) => setEditForm(prev => ({ ...prev, due_date: e.target.value }))}
+              />
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={updateTask}>
+              Update Task
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Task Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Task</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete "{selectedTask?.title}"? This will also delete all associated remarks. This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={deleteTask}>
+              Delete Task
             </Button>
           </DialogFooter>
         </DialogContent>
