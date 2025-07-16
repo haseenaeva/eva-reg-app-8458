@@ -163,27 +163,6 @@ export type Database = {
         }
         Relationships: []
       }
-      panchayath_locations: {
-        Row: {
-          district: string
-          id: string
-          panchayath: string
-          state: string
-        }
-        Insert: {
-          district: string
-          id?: string
-          panchayath: string
-          state: string
-        }
-        Update: {
-          district?: string
-          id?: string
-          panchayath?: string
-          state?: string
-        }
-        Relationships: []
-      }
       panchayath_notes: {
         Row: {
           created_at: string
@@ -444,6 +423,36 @@ export type Database = {
           id?: string
           password_hash?: string
           role?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
+      user_registration_requests: {
+        Row: {
+          approved_by: string | null
+          created_at: string
+          id: string
+          mobile_number: string
+          status: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          mobile_number: string
+          status?: string
+          updated_at?: string
+          username: string
+        }
+        Update: {
+          approved_by?: string | null
+          created_at?: string
+          id?: string
+          mobile_number?: string
+          status?: string
           updated_at?: string
           username?: string
         }

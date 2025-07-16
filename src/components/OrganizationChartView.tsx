@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { User, Phone, ChevronDown, ChevronRight } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
+import { StarRating } from "./StarRating";
 
 interface OrganizationChartViewProps {
   panchayathId: string;
@@ -112,6 +113,13 @@ export const OrganizationChartView = ({
                     <span>{agent.phone}</span>
                   </div>
                 )}
+              </div>
+              <div className="mt-2">
+                <StarRating
+                  agentId={agent.id}
+                  agentName={agent.name}
+                  readOnly={false}
+                />
               </div>
             </div>
           </CardContent>

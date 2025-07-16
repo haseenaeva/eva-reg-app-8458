@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ChevronDown, ChevronRight, User, Phone, Users, Building2 } from "lucide-react";
+import { StarRating } from "./StarRating";
 
 interface OrganizationChartProps {
   panchayathId: string;
@@ -128,6 +129,13 @@ export const EnhancedOrganizationChart = ({ panchayathId, agents, panchayathName
                   <span>{agent.phone}</span>
                 </div>
               )}
+            </div>
+            <div className="mb-3">
+              <StarRating
+                agentId={agent.id}
+                agentName={agent.name}
+                readOnly={false}
+              />
             </div>
             
             {hasSubordinates && isExpanded && (

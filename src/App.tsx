@@ -10,6 +10,8 @@ import TaskManagement from './pages/TaskManagement';
 import PanchayathNotes from './pages/PanchayathNotes';
 import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
+import GuestLogin from './pages/GuestLogin';
+import { AuthProvider } from './components/AuthProvider';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,20 +25,23 @@ const queryClient = new QueryClient({
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <div className="min-h-screen bg-background">
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/add-agents" element={<AddAgents />} />
-            <Route path="/view-hierarchy" element={<ViewHierarchy />} />
-            <Route path="/task-management" element={<TaskManagement />} />
-            <Route path="/panchayath-notes" element={<PanchayathNotes />} />
-            <Route path="/admin-panel" element={<AdminPanel />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-          <Toaster />
-        </div>
-      </BrowserRouter>
+      <AuthProvider>
+        <BrowserRouter>
+          <div className="min-h-screen bg-background">
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/add-agents" element={<AddAgents />} />
+              <Route path="/view-hierarchy" element={<ViewHierarchy />} />
+              <Route path="/task-management" element={<TaskManagement />} />
+              <Route path="/panchayath-notes" element={<PanchayathNotes />} />
+              <Route path="/admin-panel" element={<AdminPanel />} />
+              <Route path="/guest-login" element={<GuestLogin />} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+            <Toaster />
+          </div>
+        </BrowserRouter>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }

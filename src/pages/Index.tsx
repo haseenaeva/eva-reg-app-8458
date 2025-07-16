@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckSquare, Settings, TreePine, Users, FileText } from "lucide-react";
+import { CheckSquare, Settings, TreePine, Users, FileText, UserPlus } from "lucide-react";
 import { Link } from 'react-router-dom';
 
 const Index = () => {
@@ -128,6 +128,28 @@ const Index = () => {
               <Link to="/admin-panel">
                 <Button className="w-full bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
                   Access Admin Panel
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Guest Access */}
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <UserPlus className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">
+                Guest Access
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Login or register for guest access to view information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link to="/guest-login">
+                <Button className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                  Guest Login
                 </Button>
               </Link>
             </CardContent>

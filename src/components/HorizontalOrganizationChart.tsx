@@ -10,6 +10,7 @@ import { Trash2, Edit, Plus, User, Phone, RefreshCw } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { StarRating } from "./StarRating";
 interface HorizontalOrganizationChartProps {
   panchayathId: string;
   agents: Agent[];
@@ -164,6 +165,13 @@ export const HorizontalOrganizationChart = ({
                 <Phone className="h-3 w-3" />
                 <span className="text-red-700">{agent.phone}</span>
               </div>}
+          </div>
+          <div className="mt-2">
+            <StarRating
+              agentId={agent.id}
+              agentName={agent.name}
+              readOnly={false}
+            />
           </div>
         </div>
       </CardContent>
