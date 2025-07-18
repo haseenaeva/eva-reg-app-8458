@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckSquare, Settings, TreePine, Users, FileText, UserPlus } from "lucide-react";
+import { CheckSquare, TreePine, Users, FileText, ClipboardList } from "lucide-react";
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/components/AuthProvider';
+import { Navbar } from '@/components/Navbar';
 
 const Index = () => {
   const { user } = useAuth();
@@ -21,13 +22,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+      <Navbar />
+      
       {/* Header */}
-      <header className="bg-white shadow-md">
-        <div className="max-w-6xl mx-auto py-6 px-6">
-          <h1 className="text-3xl font-bold text-gray-900">
-            Panchayath Management System
+      <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
+        <div className="max-w-6xl mx-auto py-12 px-6">
+          <h1 className="text-4xl font-bold mb-4">
+            Welcome to Panchayath Management System
           </h1>
-          <p className="text-gray-600">
+          <p className="text-xl text-blue-100">
             Streamline operations, enhance transparency, and empower communities
           </p>
         </div>
@@ -126,52 +129,30 @@ const Index = () => {
                   </Link>
                 </CardContent>
               </Card>
+
+              {/* To-Do Section */}
+              <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
+                <CardHeader className="text-center pb-4">
+                  <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                    <ClipboardList className="h-8 w-8 text-white" />
+                  </div>
+                  <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">
+                    To-Do Management
+                  </CardTitle>
+                  <CardDescription className="text-gray-600">
+                    Create and allocate tasks to agents for efficient workflow
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <Link to="/task-management">
+                    <Button className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                      Manage To-Do
+                    </Button>
+                  </Link>
+                </CardContent>
+              </Card>
             </>
           )}
-
-          {/* Admin Panel - Always visible */}
-          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-gray-500 to-gray-700 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <Settings className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-gray-600 transition-colors">
-                Admin Panel
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                Manage system settings, teams, and administrative configurations
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link to="/admin-panel">
-                <Button className="w-full bg-gradient-to-r from-gray-500 to-gray-700 hover:from-gray-600 hover:to-gray-800 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
-                  Access Admin Panel
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
-
-          {/* Guest Access - Always visible */}
-          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
-            <CardHeader className="text-center pb-4">
-              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                <UserPlus className="h-8 w-8 text-white" />
-              </div>
-              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">
-                Guest Access
-              </CardTitle>
-              <CardDescription className="text-gray-600">
-                Login or register for guest access to view information
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="text-center">
-              <Link to="/guest-login">
-                <Button className="w-full bg-gradient-to-r from-green-500 to-teal-600 hover:from-green-600 hover:to-teal-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
-                  Guest Login
-                </Button>
-              </Link>
-            </CardContent>
-          </Card>
         </div>
       </main>
     </div>

@@ -6,7 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MessageSquare, Plus, RefreshCw } from "lucide-react";
+import { MessageSquare, Plus, RefreshCw, Search } from "lucide-react";
 import { format } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -30,10 +30,12 @@ interface PanchayathNote {
 export const PanchayathNotes = () => {
   const [panchayaths, setPanchayaths] = useState<Panchayath[]>([]);
   const [notes, setNotes] = useState<PanchayathNote[]>([]);
+  const [filteredNotes, setFilteredNotes] = useState<PanchayathNote[]>([]);
   const [selectedPanchayath, setSelectedPanchayath] = useState<string>('');
   const [newNote, setNewNote] = useState('');
   const [createdBy, setCreatedBy] = useState('');
   const [loading, setLoading] = useState(false);
+  const [searchTerm, setSearchTerm] = useState('');
   const { toast } = useToast();
 
   const fetchPanchayaths = async () => {
@@ -70,6 +72,7 @@ export const PanchayathNotes = () => {
 
       if (error) throw error;
       setNotes(data || []);
+      setFilteredNotes(data || []);
     } catch (error) {
       console.error('Error fetching notes:', error);
       toast({
@@ -88,6 +91,19 @@ export const PanchayathNotes = () => {
   useEffect(() => {
     fetchNotes(selectedPanchayath);
   }, [selectedPanchayath]);
+
+  useEffect(() => {
+    if (searchTerm) {
+      const filtered = notes.filter(note => 
+        note.note.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        note.created_by.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        getPanchayathName(note.panchayath_id).toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredNotes(filtered);
+    } else {
+      setFilteredNotes(notes);
+    }
+  }, [searchTerm, notes]);
 
   const addNote = async () => {
     if (!selectedPanchayath || selectedPanchayath === 'all' || !newNote.trim() || !createdBy.trim()) {
@@ -195,12 +211,21 @@ export const PanchayathNotes = () => {
       {/* Notes List */}
       <Card>
         <CardHeader>
-          <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
               <MessageSquare className="h-5 w-5" />
-              Recent Notes ({notes.length})
+              Recent Notes ({filteredNotes.length})
             </CardTitle>
             <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Search notes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 w-48"
+                />
+              </div>
               <Select value={selectedPanchayath} onValueChange={setSelectedPanchayath}>
                 <SelectTrigger className="w-48">
                   <SelectValue placeholder="Filter by panchayath" />
@@ -225,13 +250,15 @@ export const PanchayathNotes = () => {
           </div>
         </CardHeader>
         <CardContent>
-          {notes.length === 0 ? (
+          {filteredNotes.length === 0 ? (
             <div className="text-center py-8">
-              <p className="text-gray-600">No notes found for the selected panchayath.</p>
+              <p className="text-gray-600">
+                {searchTerm ? 'No notes found matching your search.' : 'No notes found for the selected panchayath.'}
+              </p>
             </div>
           ) : (
             <div className="space-y-4 max-h-96 overflow-y-auto">
-              {notes.map((note) => (
+              {filteredNotes.map((note) => (
                 <div key={note.id} className="border rounded-lg p-4 bg-gray-50">
                   <div className="flex justify-between items-start mb-2">
                     <div>

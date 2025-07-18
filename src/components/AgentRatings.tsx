@@ -1,24 +1,77 @@
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { User, Phone } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { User, Phone, Trash2 } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { StarRating } from "./StarRating";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 interface AgentRatingsProps {
   agents: Agent[];
   panchayathName: string;
+  isSuperAdmin?: boolean;
 }
 
-export const AgentRatings = ({ agents, panchayathName }: AgentRatingsProps) => {
+export const AgentRatings = ({ agents, panchayathName, isSuperAdmin = false }: AgentRatingsProps) => {
   const [ratings, setRatings] = useState<Record<string, number>>({});
+  const [existingRatings, setExistingRatings] = useState<any[]>([]);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchExistingRatings();
+  }, [agents]);
+
+  const fetchExistingRatings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('agent_ratings')
+        .select('*')
+        .in('agent_id', agents.map(a => a.id));
+
+      if (error) throw error;
+      setExistingRatings(data || []);
+    } catch (error) {
+      console.error('Error fetching ratings:', error);
+    }
+  };
 
   const handleRatingChange = (agentId: string, rating: number) => {
     setRatings(prev => ({
       ...prev,
       [agentId]: rating
     }));
+  };
+
+  const deleteRating = async (ratingId: string) => {
+    try {
+      const { error } = await supabase
+        .from('agent_ratings')
+        .delete()
+        .eq('id', ratingId);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Rating deleted successfully",
+      });
+
+      fetchExistingRatings();
+    } catch (error) {
+      console.error('Error deleting rating:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete rating",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getExistingRatingsForAgent = (agentId: string) => {
+    return existingRatings.filter(r => r.agent_id === agentId);
   };
 
   const getRoleColor = (role: Agent['role']) => {
@@ -65,7 +118,10 @@ export const AgentRatings = ({ agents, panchayathName }: AgentRatingsProps) => {
     <Card>
       <CardHeader>
         <CardTitle>Agent Performance Ratings - {panchayathName}</CardTitle>
-        <p className="text-sm text-gray-600">Rate agents to track their working progress</p>
+        <p className="text-sm text-gray-600">
+          Rate agents to track their working progress
+          {isSuperAdmin && " • Super Admin: Can delete ratings"}
+        </p>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -93,13 +149,37 @@ export const AgentRatings = ({ agents, panchayathName }: AgentRatingsProps) => {
                       </div>
                     )}
                   </div>
-                  <div className="pt-2">
+                  <div className="pt-2 space-y-2">
                     <StarRating
                       agentId={agent.id}
                       agentName={agent.name}
                       initialRating={ratings[agent.id] || 0}
                       onRatingChange={(rating) => handleRatingChange(agent.id, rating)}
                     />
+                    
+                    {/* Show existing ratings */}
+                    {getExistingRatingsForAgent(agent.id).length > 0 && (
+                      <div className="space-y-1">
+                        <p className="text-xs text-gray-500 font-medium">Previous Ratings:</p>
+                        {getExistingRatingsForAgent(agent.id).map((rating) => (
+                          <div key={rating.id} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+                            <span>
+                              ⭐ {rating.rating}/5 by {rating.rated_by}
+                            </span>
+                            {isSuperAdmin && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => deleteRating(rating.id)}
+                                className="h-6 w-6 p-0 text-red-500 hover:text-red-700"
+                              >
+                                <Trash2 className="h-3 w-3" />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
               </CardContent>
