@@ -11,6 +11,7 @@ import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { StarRating } from "./StarRating";
+import { DailyActivityHistory } from "./DailyActivityHistory";
 interface HorizontalOrganizationChartProps {
   panchayathId: string;
   agents: Agent[];
@@ -215,6 +216,9 @@ export const HorizontalOrganizationChart = ({
           <div className="text-xs text-gray-600">P.R.Os</div>
         </div>
       </div>
+
+      {/* Daily Activity History */}
+      <DailyActivityHistory panchayathId={panchayathId} />
 
       {/* Hierarchy Display */}
       <div className="space-y-4 max-h-96 overflow-y-auto"> {/* Added max height and scroll */}
