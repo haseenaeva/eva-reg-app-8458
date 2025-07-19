@@ -1,21 +1,58 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Phone, User, AlertCircle, CheckCircle } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Phone, User, AlertCircle, CheckCircle, MapPin } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+
+interface Panchayath {
+  id: string;
+  name: string;
+  district: string;
+  state: string;
+}
 
 export const GuestRegistrationForm = () => {
   const [formData, setFormData] = useState({
     username: '',
-    mobileNumber: ''
+    mobileNumber: '',
+    panchayath_id: ''
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [panchayaths, setPanchayaths] = useState<Panchayath[]>([]);
+  const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const fetchPanchayaths = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('panchayaths')
+          .select('id, name, district, state')
+          .order('name');
+
+        if (error) throw error;
+        setPanchayaths(data || []);
+      } catch (error) {
+        console.error('Error fetching panchayaths:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load panchayaths",
+          variant: "destructive",
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPanchayaths();
+  }, [toast]);
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,7 +60,7 @@ export const GuestRegistrationForm = () => {
 
     try {
       // Basic validation
-      if (!formData.username.trim() || !formData.mobileNumber.trim()) {
+      if (!formData.username.trim() || !formData.mobileNumber.trim() || !formData.panchayath_id) {
         toast({
           title: "Error",
           description: "Please fill in all fields",
@@ -49,6 +86,7 @@ export const GuestRegistrationForm = () => {
         .insert({
           username: formData.username.trim(),
           mobile_number: formData.mobileNumber,
+          panchayath_id: formData.panchayath_id,
           status: 'pending'
         });
 
@@ -150,7 +188,30 @@ export const GuestRegistrationForm = () => {
             </div>
           </div>
 
-          <Button type="submit" className="w-full" disabled={isSubmitting}>
+          <div className="space-y-2">
+            <Label htmlFor="panchayath">Panchayath</Label>
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400 z-10" />
+              <Select 
+                value={formData.panchayath_id} 
+                onValueChange={(value) => setFormData(prev => ({...prev, panchayath_id: value}))}
+                disabled={loading || isSubmitting}
+              >
+                <SelectTrigger className="pl-10">
+                  <SelectValue placeholder={loading ? "Loading panchayaths..." : "Select panchayath"} />
+                </SelectTrigger>
+                <SelectContent>
+                  {panchayaths.map((panchayath) => (
+                    <SelectItem key={panchayath.id} value={panchayath.id}>
+                      {panchayath.name} - {panchayath.district}, {panchayath.state}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+
+          <Button type="submit" className="w-full" disabled={isSubmitting || loading}>
             {isSubmitting ? "Submitting..." : "Submit Request"}
           </Button>
         </form>

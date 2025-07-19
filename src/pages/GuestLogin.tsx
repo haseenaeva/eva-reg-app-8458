@@ -29,7 +29,7 @@ export default function GuestLogin() {
       // Check if user exists and is approved
       const { data, error } = await supabase
         .from('user_registration_requests')
-        .select('*')
+        .select('*, panchayaths(name, district, state)')
         .eq('username', loginData.username.trim())
         .eq('mobile_number', loginData.mobileNumber)
         .single();
@@ -54,6 +54,8 @@ export default function GuestLogin() {
           id: data.id,
           username: data.username,
           mobileNumber: data.mobile_number,
+          panchayath_id: data.panchayath_id,
+          panchayath: data.panchayaths,
           role: 'guest'
         }));
         

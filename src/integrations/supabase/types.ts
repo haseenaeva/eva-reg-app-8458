@@ -485,6 +485,7 @@ export type Database = {
           created_at: string
           id: string
           mobile_number: string
+          panchayath_id: string | null
           status: string
           updated_at: string
           username: string
@@ -494,6 +495,7 @@ export type Database = {
           created_at?: string
           id?: string
           mobile_number: string
+          panchayath_id?: string | null
           status?: string
           updated_at?: string
           username: string
@@ -503,11 +505,20 @@ export type Database = {
           created_at?: string
           id?: string
           mobile_number?: string
+          panchayath_id?: string | null
           status?: string
           updated_at?: string
           username?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_registration_requests_panchayath_id_fkey"
+            columns: ["panchayath_id"]
+            isOneToOne: false
+            referencedRelation: "panchayaths"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

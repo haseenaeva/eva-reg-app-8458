@@ -23,6 +23,17 @@ export const OrganizationChartView = ({
   agents, 
   panchayathName 
 }: OrganizationChartViewProps) => {
+  // Filter agents for guest users
+  const filteredAgents = React.useMemo(() => {
+    const guestUser = localStorage.getItem('guest_user');
+    if (guestUser) {
+      const userData = JSON.parse(guestUser);
+      if (userData.panchayath_id && userData.panchayath_id !== panchayathId) {
+        return []; // Guest user can only see their own panchayath
+      }
+    }
+    return agents;
+  }, [agents, panchayathId]);
   // Initialize collapsed state - by default show only coordinators and supervisors
   const [collapsedNodes, setCollapsedNodes] = useState<CollapsedNodes>(() => {
     const initialState: CollapsedNodes = {};
@@ -42,11 +53,11 @@ export const OrganizationChartView = ({
   };
 
   const getAgentsByRole = (role: Agent['role']) => {
-    return agents.filter(agent => agent.role === role);
+    return filteredAgents.filter(agent => agent.role === role);
   };
 
   const getSubordinates = (agentId: string) => {
-    return agents.filter(agent => agent.superior_id === agentId);
+    return filteredAgents.filter(agent => agent.superior_id === agentId);
   };
 
   const coordinators = getAgentsByRole('coordinator');
@@ -143,7 +154,7 @@ export const OrganizationChartView = ({
 
   const renderHierarchyLevel = (parentAgents: Agent[], childRole: Agent['role']) => {
     return parentAgents.map((parent) => {
-      const children = agents.filter(agent => 
+      const children = filteredAgents.filter(agent => 
         agent.superior_id === parent.id && agent.role === childRole
       );
       const isCollapsed = collapsedNodes[parent.id];
@@ -171,7 +182,7 @@ export const OrganizationChartView = ({
     });
   };
 
-  if (agents.length === 0) {
+  if (filteredAgents.length === 0) {
     return (
       <div className="text-center py-8">
         <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />

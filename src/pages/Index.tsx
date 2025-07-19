@@ -37,29 +37,30 @@ const Index = () => {
       {/* Main Content */}
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {/* Show all sections only when authenticated */}
+          {/* Staff Management - Always available */}
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <Users className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
+                Staff Management
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Manage agents and staff members for efficient operations
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <Link to="/add-agents">
+                <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
+                  Manage Staff
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
+
+          {/* Show organization and task sections only when authenticated */}
           {isAuthenticated && <>
-              {/* Staff Management */}
-              <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <Users className="h-8 w-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-                    Staff Management
-                  </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    Manage agents and staff members for efficient operations
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <Link to="/add-agents">
-                    <Button className="w-full bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
-                      Manage Staff
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
 
               {/* View Hierarchy */}
               <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">

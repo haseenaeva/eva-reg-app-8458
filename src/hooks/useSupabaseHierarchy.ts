@@ -31,7 +31,7 @@ export interface TeamLeader {
   updated_at: string;
 }
 
-export const useSupabaseHierarchy = () => {
+export const useSupabaseHierarchy = (filterPanchayathId?: string) => {
   const [panchayaths, setPanchayaths] = useState<Panchayath[]>([]);
   const [agents, setAgents] = useState<Agent[]>([]);
   const [teamLeaders, setTeamLeaders] = useState<TeamLeader[]>([]);
@@ -43,9 +43,28 @@ export const useSupabaseHierarchy = () => {
     try {
       setIsLoading(true);
       
+      // Check if user is a guest with panchayath restriction
+      const guestUser = localStorage.getItem('guest_user');
+      let panchayathFilter = filterPanchayathId;
+      
+      if (guestUser && !filterPanchayathId) {
+        const userData = JSON.parse(guestUser);
+        if (userData.panchayath_id) {
+          panchayathFilter = userData.panchayath_id;
+        }
+      }
+      
+      const panchayathsQuery = panchayathFilter 
+        ? supabase.from('panchayaths').select('*').eq('id', panchayathFilter).order('name')
+        : supabase.from('panchayaths').select('*').order('name');
+        
+      const agentsQuery = panchayathFilter
+        ? supabase.from('agents').select('*').eq('panchayath_id', panchayathFilter).order('name')
+        : supabase.from('agents').select('*').order('name');
+      
       const [panchayathsRes, agentsRes, teamLeadersRes] = await Promise.all([
-        supabase.from('panchayaths').select('*').order('name'),
-        supabase.from('agents').select('*').order('name'),
+        panchayathsQuery,
+        agentsQuery,
         supabase.from('team_leaders').select('*').order('name')
       ]);
 
