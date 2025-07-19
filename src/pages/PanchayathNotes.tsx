@@ -6,7 +6,7 @@ import { ArrowLeft, Building, Loader2, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
 import { PanchayathDetails } from "@/components/PanchayathDetails";
-import { DailyActivityLog } from "@/components/DailyActivityLog";
+
 
 const PanchayathNotes = () => {
   const { panchayaths, isLoading } = useSupabaseHierarchy();
@@ -46,7 +46,6 @@ const PanchayathNotes = () => {
               <h1 className="text-3xl font-bold text-gray-900 mb-2">Panchayath Notes</h1>
               <p className="text-gray-600">View and manage notes about panchayath status and updates</p>
             </div>
-            <DailyActivityLog />
           </div>
         </div>
 

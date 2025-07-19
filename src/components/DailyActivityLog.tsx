@@ -65,7 +65,8 @@ export const DailyActivityLog = () => {
         .from('agents')
         .select('*')
         .eq('phone', mobileNumber)
-        .single();
+        .limit(1)
+        .maybeSingle();
 
       if (error || !data) {
         toast({
