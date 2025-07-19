@@ -14,6 +14,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
+import { MobileAgentSearch } from "@/components/MobileAgentSearch";
 
 interface ManagementTeam {
   id: string;
@@ -225,23 +226,33 @@ export const AddTaskForm = () => {
           </div>
 
           {formData.allocationType === 'agent' && (
-            <div>
-              <Label htmlFor="agent">Select Agent</Label>
-              <Select
-                value={formData.allocatedToAgent}
-                onValueChange={(value) => setFormData(prev => ({ ...prev, allocatedToAgent: value }))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select an agent" />
-                </SelectTrigger>
-                <SelectContent>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name} ({agent.role})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="mobileSearch">Search Agent by Mobile Number</Label>
+                <MobileAgentSearch
+                  onAgentSelect={(agentId) => setFormData(prev => ({ ...prev, allocatedToAgent: agentId }))}
+                  selectedAgentId={formData.allocatedToAgent}
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="agent">Or Select from List</Label>
+                <Select
+                  value={formData.allocatedToAgent}
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, allocatedToAgent: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select an agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agents.map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name} ({agent.role}) - {agent.phone}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           )}
 

@@ -103,6 +103,36 @@ export type Database = {
           },
         ]
       }
+      daily_activities: {
+        Row: {
+          activity_date: string
+          activity_description: string
+          agent_id: string
+          created_at: string
+          id: string
+          mobile_number: string
+          updated_at: string
+        }
+        Insert: {
+          activity_date: string
+          activity_description: string
+          agent_id: string
+          created_at?: string
+          id?: string
+          mobile_number: string
+          updated_at?: string
+        }
+        Update: {
+          activity_date?: string
+          activity_description?: string
+          agent_id?: string
+          created_at?: string
+          id?: string
+          mobile_number?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       management_team_members: {
         Row: {
           agent_id: string
