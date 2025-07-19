@@ -4,6 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
+import { DailyActivityHistory } from "./DailyActivityHistory";
 
 interface HierarchyTableProps {
   agents: Agent[];
@@ -62,6 +63,7 @@ export const HierarchyTable = ({ agents, panchayathName }: HierarchyTableProps) 
               <TableHead>Superior</TableHead>
               <TableHead>Ward</TableHead>
               <TableHead>Phone</TableHead>
+              <TableHead>Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -76,6 +78,12 @@ export const HierarchyTable = ({ agents, panchayathName }: HierarchyTableProps) 
                   <TableCell>{getSuperiorName(agent.superior_id)}</TableCell>
                   <TableCell>{agent.ward || '-'}</TableCell>
                   <TableCell>{agent.phone || '-'}</TableCell>
+                  <TableCell>
+                    <DailyActivityHistory 
+                      agentId={agent.id} 
+                      agentName={agent.name} 
+                    />
+                  </TableCell>
                 </TableRow>
               ))}
             </TableBody>

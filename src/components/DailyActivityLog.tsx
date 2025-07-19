@@ -337,6 +337,21 @@ export const DailyActivityLog = () => {
             </div>
           </div>
         )}
+
+        {/* Add History Button in activity step */}
+        {step === 'activity' && currentAgent && (
+          <div className="mt-4 pt-4 border-t">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              onClick={() => setStep('history')}
+              className="gap-2"
+            >
+              <Clock className="h-4 w-4" />
+              View History
+            </Button>
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );

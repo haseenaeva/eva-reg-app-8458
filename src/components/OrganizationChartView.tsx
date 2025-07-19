@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { User, Phone, ChevronDown, ChevronRight } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { StarRating } from "./StarRating";
+import { DailyActivityHistory } from "./DailyActivityHistory";
 
 interface OrganizationChartViewProps {
   panchayathId: string;
@@ -119,6 +120,12 @@ export const OrganizationChartView = ({
                   agentId={agent.id}
                   agentName={agent.name}
                   readOnly={false}
+                />
+              </div>
+              <div className="mt-2">
+                <DailyActivityHistory 
+                  agentId={agent.id} 
+                  agentName={agent.name} 
                 />
               </div>
             </div>

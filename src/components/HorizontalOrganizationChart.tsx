@@ -174,6 +174,12 @@ export const HorizontalOrganizationChart = ({
               readOnly={false}
             />
           </div>
+          <div className="mt-2">
+            <DailyActivityHistory 
+              agentId={agent.id} 
+              agentName={agent.name} 
+            />
+          </div>
         </div>
       </CardContent>
     </Card>;
@@ -217,8 +223,6 @@ export const HorizontalOrganizationChart = ({
         </div>
       </div>
 
-      {/* Daily Activity History */}
-      <DailyActivityHistory panchayathId={panchayathId} />
 
       {/* Hierarchy Display */}
       <div className="space-y-4 max-h-96 overflow-y-auto"> {/* Added max height and scroll */}
