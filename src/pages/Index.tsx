@@ -5,11 +5,11 @@ import { CheckSquare, TreePine, Users, FileText, ClipboardList } from "lucide-re
 import { Link } from 'react-router-dom';
 import { useAuth } from '@/components/AuthProvider';
 import { Navbar } from '@/components/Navbar';
-
 const Index = () => {
-  const { user } = useAuth();
+  const {
+    user
+  } = useAuth();
   const [guestUser, setGuestUser] = useState(null);
-
   useEffect(() => {
     // Check for guest user session
     const storedGuestUser = localStorage.getItem('guest_user');
@@ -17,16 +17,13 @@ const Index = () => {
       setGuestUser(JSON.parse(storedGuestUser));
     }
   }, []);
-
   const isAuthenticated = user || guestUser;
-
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+  return <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
       <Navbar />
       
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-500 to-purple-600 text-white">
-        <div className="max-w-6xl mx-auto py-12 px-6">
+        <div className="max-w-6xl mx-auto py-12 px-6 bg-cyan-950">
           <h1 className="text-4xl font-bold mb-4">
             Welcome to Panchayath Management System
           </h1>
@@ -40,8 +37,7 @@ const Index = () => {
       <main className="max-w-6xl mx-auto px-6 py-8">
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {/* Show all sections only when authenticated */}
-          {isAuthenticated && (
-            <>
+          {isAuthenticated && <>
               {/* Staff Management */}
               <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
                 <CardHeader className="text-center pb-4">
@@ -151,12 +147,9 @@ const Index = () => {
                   </Link>
                 </CardContent>
               </Card>
-            </>
-          )}
+            </>}
         </div>
       </main>
-    </div>
-  );
+    </div>;
 };
-
 export default Index;
