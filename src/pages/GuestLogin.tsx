@@ -11,7 +11,6 @@ import { GuestRegistrationForm } from "@/components/GuestRegistrationForm";
 import { GuestTaskPopup } from "@/components/GuestTaskPopup";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-
 export default function GuestLogin() {
   const [loginData, setLoginData] = useState({
     username: '',
@@ -21,24 +20,22 @@ export default function GuestLogin() {
   const [loginStatus, setLoginStatus] = useState<'idle' | 'success' | 'pending' | 'rejected'>('idle');
   const [showTaskPopup, setShowTaskPopup] = useState(false);
   const [loggedInMobile, setLoggedInMobile] = useState("");
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const navigate = useNavigate();
-
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoggingIn(true);
-
     try {
       // Check if user exists and is approved
-      const { data, error } = await supabase
-        .from('user_registration_requests')
-        .select('*, panchayaths(name, district, state)')
-        .eq('username', loginData.username.trim())
-        .eq('mobile_number', loginData.mobileNumber)
-        .single();
-
+      const {
+        data,
+        error
+      } = await supabase.from('user_registration_requests').select('*, panchayaths(name, district, state)').eq('username', loginData.username.trim()).eq('mobile_number', loginData.mobileNumber).single();
       if (error) {
-        if (error.code === 'PGRST116') { // No rows returned
+        if (error.code === 'PGRST116') {
+          // No rows returned
           toast({
             title: "Error",
             description: "Invalid username or mobile number",
@@ -49,7 +46,6 @@ export default function GuestLogin() {
         }
         return;
       }
-
       if (data.status === 'approved') {
         setLoginStatus('success');
         // Store user session
@@ -61,21 +57,19 @@ export default function GuestLogin() {
           panchayath: data.panchayaths,
           role: 'guest'
         }));
-        
+
         // Show task popup and set mobile number
         setLoggedInMobile(data.mobile_number);
         setShowTaskPopup(true);
-        
         toast({
           title: "Success",
-          description: "Login successful!",
+          description: "Login successful!"
         });
       } else if (data.status === 'pending') {
         setLoginStatus('pending');
       } else if (data.status === 'rejected') {
         setLoginStatus('rejected');
       }
-
     } catch (error) {
       console.error('Login error:', error);
       toast({
@@ -87,10 +81,8 @@ export default function GuestLogin() {
       setIsLoggingIn(false);
     }
   };
-
   if (loginStatus === 'success') {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+    return <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md mx-auto">
           <CardHeader className="text-center">
             <div className="mx-auto w-12 h-12 bg-green-100 rounded-full flex items-center justify-center mb-4">
@@ -102,12 +94,9 @@ export default function GuestLogin() {
             </CardDescription>
           </CardHeader>
         </Card>
-      </div>
-    );
+      </div>;
   }
-
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+  return <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
       <div className="w-full max-w-md">
         <div className="mb-4">
           <Link to="/">
@@ -120,11 +109,11 @@ export default function GuestLogin() {
 
         <Tabs defaultValue="login" className="w-full">
           <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="login" className="flex items-center gap-2">
+            <TabsTrigger value="login" className="flex items-center gap-2 bg-green-700 hover:bg-green-600 text-slate-50">
               <LogIn className="h-4 w-4" />
               Login
             </TabsTrigger>
-            <TabsTrigger value="register" className="flex items-center gap-2">
+            <TabsTrigger value="register" className="flex items-center gap-2 bg-indigo-400 hover:bg-indigo-300">
               <UserPlus className="h-4 w-4" />
               Register
             </TabsTrigger>
@@ -139,38 +128,29 @@ export default function GuestLogin() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                {loginStatus === 'pending' && (
-                  <Alert className="mb-4">
+                {loginStatus === 'pending' && <Alert className="mb-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       Your registration is still pending admin approval.
                     </AlertDescription>
-                  </Alert>
-                )}
+                  </Alert>}
 
-                {loginStatus === 'rejected' && (
-                  <Alert variant="destructive" className="mb-4">
+                {loginStatus === 'rejected' && <Alert variant="destructive" className="mb-4">
                     <AlertCircle className="h-4 w-4" />
                     <AlertDescription>
                       Your registration request was rejected. Please contact the administrator.
                     </AlertDescription>
-                  </Alert>
-                )}
+                  </Alert>}
 
                 <form onSubmit={handleLogin} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="login-username">Username</Label>
                     <div className="relative">
                       <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="login-username"
-                        type="text"
-                        placeholder="Enter your username"
-                        value={loginData.username}
-                        onChange={(e) => setLoginData(prev => ({ ...prev, username: e.target.value }))}
-                        className="pl-10"
-                        disabled={isLoggingIn}
-                      />
+                      <Input id="login-username" type="text" placeholder="Enter your username" value={loginData.username} onChange={e => setLoginData(prev => ({
+                      ...prev,
+                      username: e.target.value
+                    }))} className="pl-10" disabled={isLoggingIn} />
                     </div>
                   </div>
 
@@ -178,16 +158,10 @@ export default function GuestLogin() {
                     <Label htmlFor="login-mobile">Mobile Number</Label>
                     <div className="relative">
                       <Phone className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                      <Input
-                        id="login-mobile"
-                        type="tel"
-                        placeholder="Enter mobile number"
-                        value={loginData.mobileNumber}
-                        onChange={(e) => setLoginData(prev => ({ ...prev, mobileNumber: e.target.value }))}
-                        className="pl-10"
-                        maxLength={10}
-                        disabled={isLoggingIn}
-                      />
+                      <Input id="login-mobile" type="tel" placeholder="Enter mobile number" value={loginData.mobileNumber} onChange={e => setLoginData(prev => ({
+                      ...prev,
+                      mobileNumber: e.target.value
+                    }))} className="pl-10" maxLength={10} disabled={isLoggingIn} />
                     </div>
                   </div>
 
@@ -205,14 +179,9 @@ export default function GuestLogin() {
         </Tabs>
       </div>
 
-      <GuestTaskPopup 
-        isOpen={showTaskPopup}
-        onClose={() => {
-          setShowTaskPopup(false);
-          navigate('/');
-        }}
-        mobileNumber={loggedInMobile}
-      />
-    </div>
-  );
+      <GuestTaskPopup isOpen={showTaskPopup} onClose={() => {
+      setShowTaskPopup(false);
+      navigate('/');
+    }} mobileNumber={loggedInMobile} />
+    </div>;
 }
