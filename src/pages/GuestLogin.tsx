@@ -113,7 +113,7 @@ export default function GuestLogin() {
               <LogIn className="h-4 w-4" />
               Login
             </TabsTrigger>
-            <TabsTrigger value="register" className="flex items-center gap-2 bg-indigo-400 hover:bg-indigo-300">
+            <TabsTrigger value="register" className="flex items-center gap-2 bg-blue-700 hover:bg-blue-600 text-slate-50">
               <UserPlus className="h-4 w-4" />
               Register
             </TabsTrigger>
