@@ -49,8 +49,10 @@ export const useSupabaseHierarchy = (filterPanchayathId?: string) => {
       
       if (guestUser && !filterPanchayathId) {
         const userData = JSON.parse(guestUser);
+        console.log('Guest user data:', userData);
         if (userData.panchayath_id) {
           panchayathFilter = userData.panchayath_id;
+          console.log('Filtering for panchayath:', panchayathFilter);
         }
       }
       
