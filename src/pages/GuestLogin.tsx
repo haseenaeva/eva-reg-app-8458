@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { ArrowLeft, LogIn, UserPlus, Phone, User, AlertCircle, CheckCircle } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { GuestRegistrationForm } from "@/components/GuestRegistrationForm";
+import { GuestTaskPopup } from "@/components/GuestTaskPopup";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -18,6 +19,8 @@ export default function GuestLogin() {
   });
   const [isLoggingIn, setIsLoggingIn] = useState(false);
   const [loginStatus, setLoginStatus] = useState<'idle' | 'success' | 'pending' | 'rejected'>('idle');
+  const [showTaskPopup, setShowTaskPopup] = useState(false);
+  const [loggedInMobile, setLoggedInMobile] = useState("");
   const { toast } = useToast();
   const navigate = useNavigate();
 
@@ -59,15 +62,14 @@ export default function GuestLogin() {
           role: 'guest'
         }));
         
+        // Show task popup and set mobile number
+        setLoggedInMobile(data.mobile_number);
+        setShowTaskPopup(true);
+        
         toast({
           title: "Success",
-          description: "Login successful! Redirecting...",
+          description: "Login successful!",
         });
-
-        // Redirect to main app after short delay
-        setTimeout(() => {
-          navigate('/');
-        }, 1500);
       } else if (data.status === 'pending') {
         setLoginStatus('pending');
       } else if (data.status === 'rejected') {
@@ -202,6 +204,15 @@ export default function GuestLogin() {
           </TabsContent>
         </Tabs>
       </div>
+
+      <GuestTaskPopup 
+        isOpen={showTaskPopup}
+        onClose={() => {
+          setShowTaskPopup(false);
+          navigate('/');
+        }}
+        mobileNumber={loggedInMobile}
+      />
     </div>
   );
 }

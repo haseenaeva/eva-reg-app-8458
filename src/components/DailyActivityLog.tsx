@@ -111,7 +111,9 @@ export const DailyActivityLog = () => {
   const getDateColor = (date: Date) => {
     const dateStr = format(date, 'yyyy-MM-dd');
     const hasActivity = activities.some(activity => activity.activity_date === dateStr);
-    const isPast = isBefore(date, startOfToday());
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isPast = isBefore(date, yesterday);
     
     if (hasActivity) {
       return 'bg-green-100 text-green-800 hover:bg-green-200';
@@ -124,7 +126,9 @@ export const DailyActivityLog = () => {
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
     
-    const isPast = isBefore(date, startOfToday());
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const isPast = isBefore(date, yesterday);
     const dateStr = format(date, 'yyyy-MM-dd');
     const existingActivity = activities.find(activity => activity.activity_date === dateStr);
     
@@ -139,7 +143,7 @@ export const DailyActivityLog = () => {
       setActivityText('No activity recorded for this date');
       setStep('activity');
     } else {
-      // Future date - allow editing
+      // Today, yesterday, or future date - allow editing
       if (existingActivity) {
         setActivityText(existingActivity.activity_description);
       } else {
@@ -217,7 +221,9 @@ export const DailyActivityLog = () => {
     }
   };
 
-  const isPastDate = selectedDate && isBefore(selectedDate, startOfToday());
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const isPastDate = selectedDate && isBefore(selectedDate, yesterday);
   const isReadOnly = isPastDate;
 
   return (
@@ -305,7 +311,9 @@ export const DailyActivityLog = () => {
                     },
                     noActivity: (date) => {
                       const dateStr = format(date, 'yyyy-MM-dd');
-                      const isPast = isBefore(date, startOfToday());
+                      const yesterday = new Date();
+                      yesterday.setDate(yesterday.getDate() - 1);
+                      const isPast = isBefore(date, yesterday);
                       return isPast && !activities.some(activity => activity.activity_date === dateStr);
                     }
                   }}
