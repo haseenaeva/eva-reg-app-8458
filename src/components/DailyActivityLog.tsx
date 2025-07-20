@@ -11,6 +11,7 @@ import { CalendarDays, Clock, User, Phone } from "lucide-react";
 import { format, parseISO, isBefore, startOfToday } from "date-fns";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
 
 interface Agent {
   id: string;
@@ -107,32 +108,45 @@ export const DailyActivityLog = () => {
     }
   };
 
+  const getDateColor = (date: Date) => {
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const hasActivity = activities.some(activity => activity.activity_date === dateStr);
+    const isPast = isBefore(date, startOfToday());
+    
+    if (hasActivity) {
+      return 'bg-green-100 text-green-800 hover:bg-green-200';
+    } else if (isPast) {
+      return 'bg-red-100 text-red-800 hover:bg-red-200';
+    }
+    return '';
+  };
+
   const handleDateSelect = (date: Date | undefined) => {
     if (!date) return;
     
-    if (isBefore(date, startOfToday())) {
-      toast({
-        title: "Error",
-        description: "Cannot select past dates",
-        variant: "destructive",
-      });
-      return;
-    }
-
+    const isPast = isBefore(date, startOfToday());
+    const dateStr = format(date, 'yyyy-MM-dd');
+    const existingActivity = activities.find(activity => activity.activity_date === dateStr);
+    
     setSelectedDate(date);
     
-    // Check if activity already exists for this date
-    const existingActivity = activities.find(
-      activity => activity.activity_date === format(date, 'yyyy-MM-dd')
-    );
-    
-    if (existingActivity) {
+    if (isPast && existingActivity) {
+      // Show past activity in read-only mode
       setActivityText(existingActivity.activity_description);
+      setStep('activity');
+    } else if (isPast && !existingActivity) {
+      // Past date with no activity - show in read-only
+      setActivityText('No activity recorded for this date');
+      setStep('activity');
     } else {
-      setActivityText('');
+      // Future date - allow editing
+      if (existingActivity) {
+        setActivityText(existingActivity.activity_description);
+      } else {
+        setActivityText('');
+      }
+      setStep('activity');
     }
-    
-    setStep('activity');
   };
 
   const saveActivity = async () => {
@@ -203,6 +217,9 @@ export const DailyActivityLog = () => {
     }
   };
 
+  const isPastDate = selectedDate && isBefore(selectedDate, startOfToday());
+  const isReadOnly = isPastDate;
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => {
       setIsOpen(open);
@@ -268,14 +285,34 @@ export const DailyActivityLog = () => {
             </Card>
 
             <div>
-              <Label>Select Date (Future dates only)</Label>
+              <Label>Select Date</Label>
+              <div className="text-sm text-muted-foreground mb-2">
+                <span className="inline-block w-3 h-3 bg-green-100 border rounded mr-1"></span>
+                Has activity
+                <span className="inline-block w-3 h-3 bg-red-100 border rounded mr-1 ml-4"></span>
+                No activity (past dates)
+              </div>
               <div className="flex justify-center mt-2">
                 <Calendar
                   mode="single"
                   selected={selectedDate}
                   onSelect={handleDateSelect}
-                  disabled={(date) => isBefore(date, startOfToday())}
-                  className="rounded-md border"
+                  className="rounded-md border pointer-events-auto"
+                  modifiers={{
+                    hasActivity: (date) => {
+                      const dateStr = format(date, 'yyyy-MM-dd');
+                      return activities.some(activity => activity.activity_date === dateStr);
+                    },
+                    noActivity: (date) => {
+                      const dateStr = format(date, 'yyyy-MM-dd');
+                      const isPast = isBefore(date, startOfToday());
+                      return isPast && !activities.some(activity => activity.activity_date === dateStr);
+                    }
+                  }}
+                  modifiersStyles={{
+                    hasActivity: { backgroundColor: '#dcfce7', color: '#166534' },
+                    noActivity: { backgroundColor: '#fecaca', color: '#991b1b' }
+                  }}
                 />
               </div>
             </div>
@@ -285,22 +322,28 @@ export const DailyActivityLog = () => {
         {step === 'activity' && selectedDate && (
           <div className="space-y-4">
             <div>
-              <Label>Activity for {format(selectedDate, 'PPP')}</Label>
+              <Label>
+                Activity for {format(selectedDate, 'PPP')}
+                {isReadOnly && <span className="text-muted-foreground ml-2">(Read Only)</span>}
+              </Label>
               <Textarea
                 value={activityText}
                 onChange={(e) => setActivityText(e.target.value)}
-                placeholder="Describe your daily activities..."
+                placeholder={isReadOnly ? "No activity recorded" : "Describe your daily activities..."}
                 rows={6}
                 className="mt-2"
+                readOnly={isReadOnly}
               />
             </div>
             <div className="flex gap-2">
               <Button onClick={() => setStep('calendar')} variant="outline">
                 Back to Calendar
               </Button>
-              <Button onClick={saveActivity} disabled={loading} className="flex-1">
-                {loading ? "Saving..." : "Save Activity"}
-              </Button>
+              {!isReadOnly && (
+                <Button onClick={saveActivity} disabled={loading} className="flex-1">
+                  {loading ? "Saving..." : "Save Activity"}
+                </Button>
+              )}
             </div>
           </div>
         )}
@@ -310,7 +353,7 @@ export const DailyActivityLog = () => {
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-semibold">Activity History</h3>
               <Button onClick={() => setStep('calendar')} variant="outline">
-                Add New Activity
+                Back to Calendar
               </Button>
             </div>
             <div className="space-y-3 max-h-96 overflow-y-auto">

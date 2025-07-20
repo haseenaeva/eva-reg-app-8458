@@ -59,6 +59,24 @@ const Index = () => {
             </CardContent>
           </Card>
 
+          {/* Daily Activity Log - Always available */}
+          <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
+            <CardHeader className="text-center pb-4">
+              <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                <CalendarDays className="h-8 w-8 text-white" />
+              </div>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-teal-600 transition-colors">
+                Daily Activity Log
+              </CardTitle>
+              <CardDescription className="text-gray-600">
+                Log and track daily activities for agents
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="text-center">
+              <DailyActivityLog />
+            </CardContent>
+          </Card>
+
           {/* Show organization and task sections only when authenticated */}
           {isAuthenticated && <>
 
@@ -123,46 +141,6 @@ const Index = () => {
                   <Link to="/panchayath-notes">
                     <Button className="w-full bg-gradient-to-r from-orange-500 to-red-600 hover:from-orange-600 hover:to-red-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
                       View Notes
-                    </Button>
-                  </Link>
-                </CardContent>
-              </Card>
-
-              {/* Daily Activity Log */}
-              <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <CalendarDays className="h-8 w-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-teal-600 transition-colors">
-                    Daily Activity Log
-                  </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    Log and track daily activities for agents
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <DailyActivityLog />
-                </CardContent>
-              </Card>
-
-              {/* To-Do Section */}
-              <Card className="group hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1 bg-white border-0 shadow-lg">
-                <CardHeader className="text-center pb-4">
-                  <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-indigo-500 to-blue-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                    <ClipboardList className="h-8 w-8 text-white" />
-                  </div>
-                  <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-indigo-600 transition-colors">
-                    To-Do Management
-                  </CardTitle>
-                  <CardDescription className="text-gray-600">
-                    Create and allocate tasks to agents for efficient workflow
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="text-center">
-                  <Link to="/task-management">
-                    <Button className="w-full bg-gradient-to-r from-indigo-500 to-blue-600 hover:from-indigo-600 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg transition-all duration-300">
-                      Manage To-Do
                     </Button>
                   </Link>
                 </CardContent>
