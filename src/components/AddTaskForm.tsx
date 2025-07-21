@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
+const db = supabase as any;
 import { useToast } from "@/hooks/use-toast";
 import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
 import { MobileAgentSearch } from "@/components/MobileAgentSearch";
@@ -44,7 +45,7 @@ export const AddTaskForm = () => {
 
   const fetchManagementTeams = async () => {
     try {
-      const { data, error } = await supabase
+      const { data, error } = await db
         .from('management_teams')
         .select('*')
         .order('name');
@@ -86,7 +87,7 @@ export const AddTaskForm = () => {
         created_by: 'Admin' // You can update this to use actual user info
       };
 
-      const { error } = await supabase
+      const { error } = await db
         .from('tasks')
         .insert([taskData]);
 

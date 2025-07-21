@@ -75,12 +75,12 @@ export const ManagementTeamAdmin = () => {
   const fetchTeams = async () => {
     try {
       const { data, error } = await supabase
-        .from('management_teams')
+        .from('management_teams' as any)
         .select('*')
         .order('name');
         
       if (error) throw error;
-      setTeams(data || []);
+      setTeams((data as any) || []);
     } catch (error) {
       console.error('Error fetching teams:', error);
       toast({
@@ -94,7 +94,7 @@ export const ManagementTeamAdmin = () => {
   const fetchTeamMembers = async () => {
     try {
       const { data, error } = await supabase
-        .from('management_team_members')
+        .from('management_team_members' as any)
         .select(`
           *,
           agents (
@@ -105,7 +105,7 @@ export const ManagementTeamAdmin = () => {
         `);
         
       if (error) throw error;
-      setTeamMembers(data || []);
+      setTeamMembers((data as any) || []);
     } catch (error) {
       console.error('Error fetching team members:', error);
       toast({
@@ -119,12 +119,12 @@ export const ManagementTeamAdmin = () => {
   const fetchPanchayaths = async () => {
     try {
       const { data, error } = await supabase
-        .from('panchayaths')
+        .from('panchayaths' as any)
         .select('id, name, district, state')
         .order('name');
         
       if (error) throw error;
-      setPanchayaths(data || []);
+      setPanchayaths((data as any) || []);
     } catch (error) {
       console.error('Error fetching panchayaths:', error);
       toast({
@@ -151,7 +151,7 @@ export const ManagementTeamAdmin = () => {
       if (editingTeam) {
         // Update existing team
         const { error } = await supabase
-          .from('management_teams')
+          .from('management_teams' as any)
           .update({
             name: data.name,
             description: data.description
@@ -168,7 +168,7 @@ export const ManagementTeamAdmin = () => {
       } else {
         // Create new team
         const { data: teamData, error } = await supabase
-          .from('management_teams')
+          .from('management_teams' as any)
           .insert([{
             name: data.name,
             description: data.description
@@ -189,7 +189,7 @@ export const ManagementTeamAdmin = () => {
       if (editingTeam) {
         // Delete existing members
         await supabase
-          .from('management_team_members')
+          .from('management_team_members' as any)
           .delete()
           .eq('team_id', teamId);
       }
@@ -202,7 +202,7 @@ export const ManagementTeamAdmin = () => {
         }));
 
         const { error: membersError } = await supabase
-          .from('management_team_members')
+          .from('management_team_members' as any)
           .insert(memberInserts);
 
         if (membersError) throw membersError;
@@ -224,7 +224,7 @@ export const ManagementTeamAdmin = () => {
   const handleDelete = async (teamId: string) => {
     try {
       const { error } = await supabase
-        .from('management_teams')
+        .from('management_teams' as any)
         .delete()
         .eq('id', teamId);
 
@@ -303,7 +303,7 @@ export const ManagementTeamAdmin = () => {
     try {
       // Create a new agent entry
       const { data: newAgent, error } = await supabase
-        .from('agents')
+        .from('agents' as any)
         .insert({
           name: manualMemberName.trim(),
           phone: manualMemberMobile.trim(),
@@ -358,7 +358,6 @@ export const ManagementTeamAdmin = () => {
           id="name"
           {...register('name', { required: true })}
           placeholder="Enter team name"
-          style={{ fontSize: '16px' }}
         />
       </div>
 
@@ -419,13 +418,11 @@ export const ManagementTeamAdmin = () => {
               placeholder="Member name *"
               value={manualMemberName}
               onChange={(e) => setManualMemberName(e.target.value)}
-              style={{ fontSize: '16px' }}
             />
             <Input
               placeholder="Mobile number *"
               value={manualMemberMobile}
               onChange={(e) => setManualMemberMobile(e.target.value)}
-              style={{ fontSize: '16px' }}
             />
             <Select value={manualMemberPanchayath} onValueChange={setManualMemberPanchayath}>
               <SelectTrigger>
@@ -485,19 +482,21 @@ export const ManagementTeamAdmin = () => {
               Add Team
             </Button>
           </DialogTrigger>
-          <DialogContent className="max-w-md">
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create Management Team</DialogTitle>
               <DialogDescription>
                 Create a new management team and assign agents to it.
               </DialogDescription>
             </DialogHeader>
-            <TeamForm />
+            <div className="max-h-[60vh] overflow-y-auto">
+              <TeamForm />
+            </div>
           </DialogContent>
         </Dialog>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-4 max-h-[70vh] overflow-y-auto">
         {teams.map((team) => {
           const members = getTeamMembers(team.id);
           return (
@@ -552,14 +551,16 @@ export const ManagementTeamAdmin = () => {
 
       {/* Edit Dialog */}
       <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Management Team</DialogTitle>
             <DialogDescription>
               Update the management team details and members.
             </DialogDescription>
           </DialogHeader>
-          <TeamForm />
+          <div className="max-h-[60vh] overflow-y-auto">
+            <TeamForm />
+          </div>
         </DialogContent>
       </Dialog>
     </div>
