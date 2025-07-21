@@ -38,8 +38,8 @@ export const MobileAgentSearch = ({ onAgentSelect, selectedAgentId }: MobileAgen
 
     setIsSearching(true);
     try {
-      const { data, error } = await supabase
-        .from('agents')
+      const { data, error } = await typedSupabase
+        .from(TABLES.AGENTS)
         .select('*')
         .eq('phone', mobileNumber)
         .single();

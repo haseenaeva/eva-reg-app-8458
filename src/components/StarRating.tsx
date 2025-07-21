@@ -31,8 +31,8 @@ export const StarRating = ({
 
   const fetchExistingRating = async () => {
     try {
-      const { data, error } = await supabase
-        .from('agent_ratings')
+      const { data, error } = await typedSupabase
+        .from(TABLES.AGENT_RATINGS)
         .select('rating')
         .eq('agent_id', agentId)
         .eq('rated_by', 'admin') // You can make this dynamic based on current user
@@ -53,8 +53,8 @@ export const StarRating = ({
     
     setIsLoading(true);
     try {
-      const { error } = await supabase
-        .from('agent_ratings')
+      const { error } = await typedSupabase
+        .from(TABLES.AGENT_RATINGS)
         .upsert({
           agent_id: agentId,
           rated_by: 'admin', // You can make this dynamic based on current user

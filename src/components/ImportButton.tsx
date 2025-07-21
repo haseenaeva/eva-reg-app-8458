@@ -128,8 +128,8 @@ export const ImportButton = ({ panchayathId, onRefresh }: ImportButtonProps) => 
       }
 
       // Insert all agents into database
-      const { error } = await supabase
-        .from('agents')
+      const { error } = await typedSupabase
+        .from(TABLES.AGENTS)
         .upsert(agentsToCreate, { onConflict: 'id' });
 
       if (error) throw error;

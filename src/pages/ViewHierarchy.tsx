@@ -13,7 +13,7 @@ import { OrganizationChartView } from "@/components/OrganizationChartView";
 import { HierarchyTable } from "@/components/HierarchyTable";
 import { AgentRatings } from "@/components/AgentRatings";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { ExportButton } from "@/components/ExportButton";
 import { ImportButton } from "@/components/ImportButton";
 
@@ -39,16 +39,16 @@ const ViewHierarchy = () => {
   const deletePanchayath = async (panchayathId: string) => {
     try {
       // First delete all agents in this panchayath
-      const { error: agentsError } = await supabase
-        .from('agents')
+      const { error: agentsError } = await typedSupabase
+        .from(TABLES.AGENTS)
         .delete()
         .eq('panchayath_id', panchayathId);
 
       if (agentsError) throw agentsError;
 
       // Then delete the panchayath
-      const { error: panchayathError } = await supabase
-        .from('panchayaths')
+      const { error: panchayathError } = await typedSupabase
+        .from(TABLES.PANCHAYATHS)
         .delete()
         .eq('id', panchayathId);
 

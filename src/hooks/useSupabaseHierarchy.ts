@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from '@/hooks/use-toast';
 
 export interface Agent {
@@ -57,17 +57,17 @@ export const useSupabaseHierarchy = (filterPanchayathId?: string) => {
       }
       
       const panchayathsQuery = panchayathFilter 
-        ? supabase.from('panchayaths').select('*').eq('id', panchayathFilter).order('name')
-        : supabase.from('panchayaths').select('*').order('name');
+        ? typedSupabase.from(TABLES.PANCHAYATHS).select('*').eq('id', panchayathFilter).order('name')
+        : typedSupabase.from(TABLES.PANCHAYATHS).select('*').order('name');
         
       const agentsQuery = panchayathFilter
-        ? supabase.from('agents').select('*').eq('panchayath_id', panchayathFilter).order('name')
-        : supabase.from('agents').select('*').order('name');
+        ? typedSupabase.from(TABLES.AGENTS).select('*').eq('panchayath_id', panchayathFilter).order('name')
+        : typedSupabase.from(TABLES.AGENTS).select('*').order('name');
       
       const [panchayathsRes, agentsRes, teamLeadersRes] = await Promise.all([
         panchayathsQuery,
         agentsQuery,
-        supabase.from('team_leaders').select('*').order('name')
+        typedSupabase.from(TABLES.TEAM_LEADERS).select('*').order('name')
       ]);
 
       if (panchayathsRes.error) throw panchayathsRes.error;
@@ -95,8 +95,8 @@ export const useSupabaseHierarchy = (filterPanchayathId?: string) => {
 
   const addPanchayath = async (panchayath: Omit<Panchayath, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data, error } = await supabase
-        .from('panchayaths')
+      const { data, error } = await typedSupabase
+        .from(TABLES.PANCHAYATHS)
         .insert([panchayath])
         .select()
         .single();
@@ -123,8 +123,8 @@ export const useSupabaseHierarchy = (filterPanchayathId?: string) => {
 
   const addAgent = async (agent: Omit<Agent, 'id' | 'created_at' | 'updated_at'>) => {
     try {
-      const { data, error } = await supabase
-        .from('agents')
+      const { data, error } = await typedSupabase
+        .from(TABLES.AGENTS)
         .insert([agent])
         .select()
         .single();

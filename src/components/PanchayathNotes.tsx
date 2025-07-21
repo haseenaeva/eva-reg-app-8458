@@ -40,8 +40,8 @@ export const PanchayathNotes = () => {
 
   const fetchPanchayaths = async () => {
     try {
-      const { data, error } = await supabase
-        .from('panchayaths')
+      const { data, error } = await typedSupabase
+        .from(TABLES.PANCHAYATHS)
         .select('*')
         .order('name');
 
@@ -59,8 +59,8 @@ export const PanchayathNotes = () => {
 
   const fetchNotes = async (panchayathId?: string) => {
     try {
-      let query = supabase
-        .from('panchayath_notes')
+      let query = typedSupabase
+        .from(TABLES.PANCHAYATH_NOTES)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -117,8 +117,8 @@ export const PanchayathNotes = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('panchayath_notes')
+      const { error } = await typedSupabase
+        .from(TABLES.PANCHAYATH_NOTES)
         .insert([{
           panchayath_id: selectedPanchayath,
           note: newNote,

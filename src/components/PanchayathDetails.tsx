@@ -50,8 +50,8 @@ export const PanchayathDetails = ({ panchayath, onBack }: PanchayathDetailsProps
   const fetchNotes = async () => {
     try {
       setIsLoading(true);
-      const { data, error } = await supabase
-        .from('panchayath_notes')
+      const { data, error } = await typedSupabase
+        .from(TABLES.PANCHAYATH_NOTES)
         .select('*')
         .eq('panchayath_id', panchayath.id)
         .order('created_at', { ascending: false });
@@ -75,8 +75,8 @@ export const PanchayathDetails = ({ panchayath, onBack }: PanchayathDetailsProps
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('panchayath_notes')
+      const { error } = await typedSupabase
+        .from(TABLES.PANCHAYATH_NOTES)
         .insert({
           panchayath_id: panchayath.id,
           note: newNote.trim(),
@@ -109,8 +109,8 @@ export const PanchayathDetails = ({ panchayath, onBack }: PanchayathDetailsProps
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('panchayath_notes')
+      const { error } = await typedSupabase
+        .from(TABLES.PANCHAYATH_NOTES)
         .update({ 
           note: editNoteText.trim(),
           updated_at: new Date().toISOString()
@@ -143,8 +143,8 @@ export const PanchayathDetails = ({ panchayath, onBack }: PanchayathDetailsProps
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('panchayath_notes')
+      const { error } = await typedSupabase
+        .from(TABLES.PANCHAYATH_NOTES)
         .delete()
         .eq('id', noteToDelete);
 

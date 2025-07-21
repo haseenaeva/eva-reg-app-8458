@@ -58,7 +58,7 @@ export const HorizontalOrganizationChart = ({
     try {
       const {
         error
-      } = await supabase.from('agents').delete().eq('id', agentId);
+      } = await typedSupabase.from(TABLES.AGENTS).delete().eq('id', agentId);
       if (error) throw error;
       toast({
         title: "Success",
@@ -81,7 +81,7 @@ export const HorizontalOrganizationChart = ({
     try {
       const {
         error
-      } = await supabase.from('agents').update({
+      } = await typedSupabase.from(TABLES.AGENTS).update({
         name: editFormData.name,
         phone: editFormData.phone || null,
         ward: editFormData.ward || null

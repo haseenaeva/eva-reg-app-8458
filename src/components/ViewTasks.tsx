@@ -70,8 +70,8 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
 
   const fetchTasks = async () => {
     try {
-      const { data, error } = await supabase
-        .from('tasks')
+      const { data, error } = await typedSupabase
+        .from(TABLES.TASKS)
         .select('*')
         .eq('status', taskType)
         .order('created_at', { ascending: false });
@@ -93,8 +93,8 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
 
   const fetchManagementTeams = async () => {
     try {
-      const { data, error } = await supabase
-        .from('management_teams')
+      const { data, error } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAMS)
         .select('*')
         .order('name');
 
@@ -107,8 +107,8 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
 
   const fetchTaskRemarks = async (taskId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('task_remarks')
+      const { data, error } = await typedSupabase
+        .from(TABLES.TASK_REMARKS)
         .select('*')
         .eq('task_id', taskId)
         .order('created_at', { ascending: false });
@@ -178,8 +178,8 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
 
   const updateTaskStatus = async (taskId: string, newStatus: 'pending' | 'completed' | 'cancelled') => {
     try {
-      const { error } = await supabase
-        .from('tasks')
+      const { error } = await typedSupabase
+        .from(TABLES.TASKS)
         .update({ status: newStatus, updated_at: new Date().toISOString() })
         .eq('id', taskId);
 
@@ -212,8 +212,8 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
     }
 
     try {
-      const { error } = await supabase
-        .from('task_remarks')
+      const { error } = await typedSupabase
+        .from(TABLES.TASK_REMARKS)
         .insert([{
           task_id: selectedTask?.id,
           remark: newRemark,
@@ -273,8 +273,8 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
     }
 
     try {
-      const { error } = await supabase
-        .from('tasks')
+      const { error } = await typedSupabase
+        .from(TABLES.TASKS)
         .update({
           title: editForm.title,
           description: editForm.description,
@@ -308,16 +308,16 @@ export const ViewTasks = ({ taskType }: ViewTasksProps) => {
 
     try {
       // First delete task remarks
-      const { error: remarksError } = await supabase
-        .from('task_remarks')
+      const { error: remarksError } = await typedSupabase
+        .from(TABLES.TASK_REMARKS)
         .delete()
         .eq('task_id', selectedTask.id);
 
       if (remarksError) throw remarksError;
 
       // Then delete the task
-      const { error: taskError } = await supabase
-        .from('tasks')
+      const { error: taskError } = await typedSupabase
+        .from(TABLES.TASKS)
         .delete()
         .eq('id', selectedTask.id);
 

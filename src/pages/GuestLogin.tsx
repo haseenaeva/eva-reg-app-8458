@@ -9,7 +9,7 @@ import { ArrowLeft, LogIn, UserPlus, Phone, User, AlertCircle, CheckCircle } fro
 import { Link, useNavigate } from "react-router-dom";
 import { GuestRegistrationForm } from "@/components/GuestRegistrationForm";
 import { GuestTaskPopup } from "@/components/GuestTaskPopup";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 export default function GuestLogin() {
   const [loginData, setLoginData] = useState({
@@ -32,7 +32,7 @@ export default function GuestLogin() {
       const {
         data,
         error
-      } = await supabase.from('user_registration_requests').select('*, panchayaths(name, district, state)').eq('username', loginData.username.trim()).eq('mobile_number', loginData.mobileNumber).single();
+      } = await typedSupabase.from(TABLES.USER_REGISTRATION_REQUESTS).select('*, panchayaths(name, district, state)').eq('username', loginData.username.trim()).eq('mobile_number', loginData.mobileNumber).single();
       if (error) {
         if (error.code === 'PGRST116') {
           // No rows returned
