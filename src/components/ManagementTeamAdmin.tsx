@@ -46,7 +46,10 @@ export const ManagementTeamAdmin = () => {
   });
   const [selectedAgent, setSelectedAgent] = useState('');
   const [manualMemberName, setManualMemberName] = useState('');
-  const [manualMemberRole, setManualMemberRole] = useState('');
+  const [manualMemberMobile, setManualMemberMobile] = useState('');
+  const [manualMemberPanchayath, setManualMemberPanchayath] = useState('');
+  const [manualMemberReportsTo, setManualMemberReportsTo] = useState('');
+  const [panchayaths, setPanchayaths] = useState<Array<{id: string, name: string, district: string, state: string}>>([]);
   
   const { agents } = useSupabaseHierarchy();
   const { toast } = useToast();
@@ -54,6 +57,7 @@ export const ManagementTeamAdmin = () => {
   useEffect(() => {
     fetchTeams();
     fetchTeamMembers();
+    fetchPanchayaths();
   }, []);
 
   const fetchTeams = async () => {
@@ -95,6 +99,25 @@ export const ManagementTeamAdmin = () => {
       toast({
         title: "Error",
         description: "Failed to fetch team members",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchPanchayaths = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('panchayaths')
+        .select('id, name, district, state')
+        .order('name');
+        
+      if (error) throw error;
+      setPanchayaths(data || []);
+    } catch (error) {
+      console.error('Error fetching panchayaths:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch panchayaths",
         variant: "destructive",
       });
     }
@@ -221,7 +244,9 @@ export const ManagementTeamAdmin = () => {
     });
     setSelectedAgent('');
     setManualMemberName('');
-    setManualMemberRole('');
+    setManualMemberMobile('');
+    setManualMemberPanchayath('');
+    setManualMemberReportsTo('');
     setEditingTeam(null);
     setIsAddDialogOpen(false);
     setIsEditDialogOpen(false);
@@ -258,21 +283,10 @@ export const ManagementTeamAdmin = () => {
   };
 
   const addManualMember = async () => {
-    if (!manualMemberName.trim() || !manualMemberRole.trim()) {
+    if (!manualMemberName.trim() || !manualMemberMobile.trim() || !manualMemberPanchayath) {
       toast({
         title: "Error",
-        description: "Please enter both name and role for the manual member",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    // Validate role
-    const validRoles = ['coordinator', 'supervisor', 'group-leader', 'pro'];
-    if (!validRoles.includes(manualMemberRole)) {
-      toast({
-        title: "Error",
-        description: "Please select a valid role",
+        description: "Please enter name, mobile number and select panchayath",
         variant: "destructive",
       });
       return;
@@ -284,8 +298,10 @@ export const ManagementTeamAdmin = () => {
         .from('agents')
         .insert({
           name: manualMemberName.trim(),
-          role: manualMemberRole as 'coordinator' | 'supervisor' | 'group-leader' | 'pro',
-          panchayath_id: '00000000-0000-0000-0000-000000000000' // Default for manual entries
+          phone: manualMemberMobile.trim(),
+          role: 'coordinator', // Default role for management team members
+          panchayath_id: manualMemberPanchayath,
+          superior_id: manualMemberReportsTo || null
         })
         .select()
         .single();
@@ -299,7 +315,9 @@ export const ManagementTeamAdmin = () => {
       }));
 
       setManualMemberName('');
-      setManualMemberRole('');
+      setManualMemberMobile('');
+      setManualMemberPanchayath('');
+      setManualMemberReportsTo('');
 
       toast({
         title: "Success",
@@ -398,25 +416,44 @@ export const ManagementTeamAdmin = () => {
           <Label className="text-sm font-medium">Add New Member Manually</Label>
           <div className="grid grid-cols-1 gap-2 mt-2">
             <Input
-              placeholder="Member name"
+              placeholder="Member name *"
               value={manualMemberName}
               onChange={(e) => setManualMemberName(e.target.value)}
             />
-            <Select value={manualMemberRole} onValueChange={setManualMemberRole}>
+            <Input
+              placeholder="Mobile number *"
+              value={manualMemberMobile}
+              onChange={(e) => setManualMemberMobile(e.target.value)}
+            />
+            <Select value={manualMemberPanchayath} onValueChange={setManualMemberPanchayath}>
               <SelectTrigger>
-                <SelectValue placeholder="Select role" />
+                <SelectValue placeholder="Select panchayath *" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="coordinator">Coordinator</SelectItem>
-                <SelectItem value="supervisor">Supervisor</SelectItem>
-                <SelectItem value="group-leader">Group Leader</SelectItem>
-                <SelectItem value="pro">Pro</SelectItem>
+                {panchayaths.map((panchayath) => (
+                  <SelectItem key={panchayath.id} value={panchayath.id}>
+                    {panchayath.name} - {panchayath.district}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={manualMemberReportsTo} onValueChange={setManualMemberReportsTo}>
+              <SelectTrigger>
+                <SelectValue placeholder="Reports to (optional)" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">None</SelectItem>
+                {teams.map((team) => (
+                  <SelectItem key={team.id} value={team.id}>
+                    {team.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
             <Button 
               type="button" 
               onClick={addManualMember} 
-              disabled={!manualMemberName.trim() || !manualMemberRole}
+              disabled={!manualMemberName.trim() || !manualMemberMobile.trim() || !manualMemberPanchayath}
               size="sm"
             >
               Add Manual Member
