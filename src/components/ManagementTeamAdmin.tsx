@@ -354,9 +354,12 @@ export const ManagementTeamAdmin = () => {
         <Label htmlFor="name">Team Name *</Label>
         <Input
           id="name"
+          type="text"
           value={formData.name}
           onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
           placeholder="Enter team name"
+          autoComplete="off"
+          inputMode="text"
           required
         />
       </div>
