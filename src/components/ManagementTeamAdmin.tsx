@@ -442,7 +442,6 @@ export const ManagementTeamAdmin = () => {
                 <SelectValue placeholder="Reports to (optional)" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">None</SelectItem>
                 {teams.map((team) => (
                   <SelectItem key={team.id} value={team.id}>
                     {team.name}
