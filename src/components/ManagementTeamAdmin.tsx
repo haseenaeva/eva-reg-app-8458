@@ -501,9 +501,7 @@ export const ManagementTeamAdmin = () => {
                 Create a new management team and assign agents to it.
               </DialogDescription>
             </DialogHeader>
-            <div className="max-h-[60vh] overflow-y-auto">
-              <TeamForm />
-            </div>
+            <TeamForm />
           </DialogContent>
         </Dialog>
       </div>
