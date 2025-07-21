@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,9 +9,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { Trash2, Edit, Plus, X } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
-import { useSupabaseHierarchy } from "@/hooks/useSupabaseHierarchy";
 
 interface ManagementTeam {
   id: string;
@@ -33,6 +32,14 @@ interface TeamMember {
   };
 }
 
+interface Agent {
+  id: string;
+  name: string;
+  role: string;
+  email?: string;
+  phone?: string;
+}
+
 interface FormData {
   name: string;
   description: string;
@@ -42,6 +49,7 @@ interface FormData {
 export const ManagementTeamAdmin = () => {
   const [teams, setTeams] = useState<ManagementTeam[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<ManagementTeam | null>(null);
@@ -49,10 +57,8 @@ export const ManagementTeamAdmin = () => {
   const [manualMemberName, setManualMemberName] = useState('');
   const [manualMemberMobile, setManualMemberMobile] = useState('');
   const [manualMemberPanchayath, setManualMemberPanchayath] = useState('');
-  const [manualMemberReportsTo, setManualMemberReportsTo] = useState('');
   const [panchayaths, setPanchayaths] = useState<Array<{id: string, name: string, district: string, state: string}>>([]);
   
-  const { agents } = useSupabaseHierarchy();
   const { toast } = useToast();
 
   const form = useForm<FormData>({
@@ -60,22 +66,25 @@ export const ManagementTeamAdmin = () => {
       name: '',
       description: '',
       members: []
-    }
+    },
+    mode: 'onChange'
   });
 
-  const { register, handleSubmit, setValue, watch, reset } = form;
+  const { register, handleSubmit, setValue, watch, reset, formState } = form;
   const formValues = watch();
 
-  useEffect(() => {
-    fetchTeams();
-    fetchTeamMembers();
-    fetchPanchayaths();
+  const fetchData = useCallback(async () => {
+    await Promise.all([fetchTeams(), fetchTeamMembers(), fetchAgents(), fetchPanchayaths()]);
   }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const fetchTeams = async () => {
     try {
-      const { data, error } = await supabase
-        .from('management_teams' as any)
+      const { data, error } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAMS)
         .select('*')
         .order('name');
         
@@ -93,8 +102,8 @@ export const ManagementTeamAdmin = () => {
 
   const fetchTeamMembers = async () => {
     try {
-      const { data, error } = await supabase
-        .from('management_team_members' as any)
+      const { data, error } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
         .select(`
           *,
           agents (
@@ -116,10 +125,29 @@ export const ManagementTeamAdmin = () => {
     }
   };
 
+  const fetchAgents = async () => {
+    try {
+      const { data, error } = await typedSupabase
+        .from(TABLES.AGENTS)
+        .select('id, name, role, email, phone')
+        .order('name');
+        
+      if (error) throw error;
+      setAgents((data as any) || []);
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch agents",
+        variant: "destructive",
+      });
+    }
+  };
+
   const fetchPanchayaths = async () => {
     try {
-      const { data, error } = await supabase
-        .from('panchayaths' as any)
+      const { data, error } = await typedSupabase
+        .from(TABLES.PANCHAYATHS)
         .select('id, name, district, state')
         .order('name');
         
@@ -150,8 +178,8 @@ export const ManagementTeamAdmin = () => {
 
       if (editingTeam) {
         // Update existing team
-        const { error } = await supabase
-          .from('management_teams' as any)
+        const { error } = await typedSupabase
+          .from(TABLES.MANAGEMENT_TEAMS)
           .update({
             name: data.name,
             description: data.description
@@ -167,8 +195,8 @@ export const ManagementTeamAdmin = () => {
         });
       } else {
         // Create new team
-        const { data: teamData, error } = await supabase
-          .from('management_teams' as any)
+        const { data: teamData, error } = await typedSupabase
+          .from(TABLES.MANAGEMENT_TEAMS)
           .insert([{
             name: data.name,
             description: data.description
@@ -188,8 +216,8 @@ export const ManagementTeamAdmin = () => {
       // Update team members
       if (editingTeam) {
         // Delete existing members
-        await supabase
-          .from('management_team_members' as any)
+        await typedSupabase
+          .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
           .delete()
           .eq('team_id', teamId);
       }
@@ -201,16 +229,15 @@ export const ManagementTeamAdmin = () => {
           agent_id: agentId
         }));
 
-        const { error: membersError } = await supabase
-          .from('management_team_members' as any)
+        const { error: membersError } = await typedSupabase
+          .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
           .insert(memberInserts);
 
         if (membersError) throw membersError;
       }
 
       resetForm();
-      fetchTeams();
-      fetchTeamMembers();
+      fetchData();
     } catch (error) {
       console.error('Error saving team:', error);
       toast({
@@ -223,8 +250,8 @@ export const ManagementTeamAdmin = () => {
 
   const handleDelete = async (teamId: string) => {
     try {
-      const { error } = await supabase
-        .from('management_teams' as any)
+      const { error } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAMS)
         .delete()
         .eq('id', teamId);
 
@@ -235,8 +262,7 @@ export const ManagementTeamAdmin = () => {
         description: "Team deleted successfully",
       });
       
-      fetchTeams();
-      fetchTeamMembers();
+      fetchData();
     } catch (error) {
       console.error('Error deleting team:', error);
       toast({
@@ -257,7 +283,6 @@ export const ManagementTeamAdmin = () => {
     setManualMemberName('');
     setManualMemberMobile('');
     setManualMemberPanchayath('');
-    setManualMemberReportsTo('');
     setEditingTeam(null);
     setIsAddDialogOpen(false);
     setIsEditDialogOpen(false);
@@ -302,14 +327,13 @@ export const ManagementTeamAdmin = () => {
 
     try {
       // Create a new agent entry
-      const { data: newAgent, error } = await supabase
-        .from('agents' as any)
+      const { data: newAgent, error } = await typedSupabase
+        .from(TABLES.AGENTS)
         .insert({
           name: manualMemberName.trim(),
           phone: manualMemberMobile.trim(),
           role: 'coordinator', // Default role for management team members
-          panchayath_id: manualMemberPanchayath,
-          superior_id: manualMemberReportsTo || null
+          panchayath_id: manualMemberPanchayath
         })
         .select()
         .single();
@@ -322,7 +346,6 @@ export const ManagementTeamAdmin = () => {
       setManualMemberName('');
       setManualMemberMobile('');
       setManualMemberPanchayath('');
-      setManualMemberReportsTo('');
 
       toast({
         title: "Success",
@@ -330,7 +353,7 @@ export const ManagementTeamAdmin = () => {
       });
 
       // Refresh agents list
-      window.location.reload(); // Simple refresh to update the agents list
+      fetchAgents();
     } catch (error) {
       console.error('Error adding manual member:', error);
       toast({
@@ -358,6 +381,7 @@ export const ManagementTeamAdmin = () => {
           id="name"
           {...register('name', { required: true })}
           placeholder="Enter team name"
+          autoComplete="off"
         />
       </div>
 
@@ -432,18 +456,6 @@ export const ManagementTeamAdmin = () => {
                 {panchayaths.map((panchayath) => (
                   <SelectItem key={panchayath.id} value={panchayath.id}>
                     {panchayath.name} - {panchayath.district}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-            <Select value={manualMemberReportsTo} onValueChange={setManualMemberReportsTo}>
-              <SelectTrigger>
-                <SelectValue placeholder="Reports to (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {teams.map((team) => (
-                  <SelectItem key={team.id} value={team.id}>
-                    {team.name}
                   </SelectItem>
                 ))}
               </SelectContent>
