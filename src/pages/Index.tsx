@@ -43,7 +43,7 @@ const Index = () => {
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Users className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">ഏജന്റിനെ ചേര്‍ക്കുക</CardTitle>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">ഏജൻ്റുമാരെ ചേർക്കുക</CardTitle>
               <CardDescription className="text-gray-600">
                 Manage agents and staff members for efficient operations
               </CardDescription>
