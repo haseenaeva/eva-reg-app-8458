@@ -45,6 +45,8 @@ export const ManagementTeamAdmin = () => {
     members: [] as string[]
   });
   const [selectedAgent, setSelectedAgent] = useState('');
+  const [manualMemberName, setManualMemberName] = useState('');
+  const [manualMemberRole, setManualMemberRole] = useState('');
   
   const { agents } = useSupabaseHierarchy();
   const { toast } = useToast();
@@ -218,6 +220,8 @@ export const ManagementTeamAdmin = () => {
       members: []
     });
     setSelectedAgent('');
+    setManualMemberName('');
+    setManualMemberRole('');
     setEditingTeam(null);
     setIsAddDialogOpen(false);
     setIsEditDialogOpen(false);
@@ -250,6 +254,67 @@ export const ManagementTeamAdmin = () => {
         members: [...prev.members, selectedAgent]
       }));
       setSelectedAgent('');
+    }
+  };
+
+  const addManualMember = async () => {
+    if (!manualMemberName.trim() || !manualMemberRole.trim()) {
+      toast({
+        title: "Error",
+        description: "Please enter both name and role for the manual member",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validate role
+    const validRoles = ['coordinator', 'supervisor', 'group-leader', 'pro'];
+    if (!validRoles.includes(manualMemberRole)) {
+      toast({
+        title: "Error",
+        description: "Please select a valid role",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      // Create a new agent entry
+      const { data: newAgent, error } = await supabase
+        .from('agents')
+        .insert({
+          name: manualMemberName.trim(),
+          role: manualMemberRole as 'coordinator' | 'supervisor' | 'group-leader' | 'pro',
+          panchayath_id: '00000000-0000-0000-0000-000000000000' // Default for manual entries
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      // Add to form members
+      setFormData(prev => ({
+        ...prev,
+        members: [...prev.members, newAgent.id]
+      }));
+
+      setManualMemberName('');
+      setManualMemberRole('');
+
+      toast({
+        title: "Success",
+        description: "Manual member added successfully",
+      });
+
+      // Refresh agents list
+      window.location.reload(); // Simple refresh to update the agents list
+    } catch (error) {
+      console.error('Error adding manual member:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add manual member",
+        variant: "destructive",
+      });
     }
   };
 
@@ -326,6 +391,37 @@ export const ManagementTeamAdmin = () => {
               </Button>
             </Badge>
           ))}
+        </div>
+
+        {/* Manual Member Addition */}
+        <div className="mt-4 p-3 border rounded-lg bg-muted/30">
+          <Label className="text-sm font-medium">Add New Member Manually</Label>
+          <div className="grid grid-cols-1 gap-2 mt-2">
+            <Input
+              placeholder="Member name"
+              value={manualMemberName}
+              onChange={(e) => setManualMemberName(e.target.value)}
+            />
+            <Select value={manualMemberRole} onValueChange={setManualMemberRole}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select role" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="coordinator">Coordinator</SelectItem>
+                <SelectItem value="supervisor">Supervisor</SelectItem>
+                <SelectItem value="group-leader">Group Leader</SelectItem>
+                <SelectItem value="pro">Pro</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button 
+              type="button" 
+              onClick={addManualMember} 
+              disabled={!manualMemberName.trim() || !manualMemberRole}
+              size="sm"
+            >
+              Add Manual Member
+            </Button>
+          </div>
         </div>
       </div>
 
