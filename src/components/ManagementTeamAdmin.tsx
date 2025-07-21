@@ -360,6 +360,10 @@ export const ManagementTeamAdmin = () => {
           placeholder="Enter team name"
           autoComplete="off"
           inputMode="text"
+          autoFocus={false}
+          spellCheck={false}
+          autoCapitalize="words"
+          style={{ fontSize: '16px' }}
           required
         />
       </div>
