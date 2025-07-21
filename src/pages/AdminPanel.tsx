@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ArrowLeft, Settings, Users, LogOut, MapPin, UserCheck } from "lucide-react";
 import { Link } from "react-router-dom";
-import { ManagementTeamAdmin } from "@/components/ManagementTeamAdmin";
+import { TeamManagementNew } from "@/components/TeamManagementNew";
 import { AddPanchayathForm } from "@/components/AddPanchayathForm";
 import { useAuth } from "@/components/AuthProvider";
 import LoginForm from "@/components/LoginForm";
@@ -70,7 +70,7 @@ const AdminPanelContent = () => {
               </TabsList>
               
               <TabsContent value="teams" className="mt-6">
-                <ManagementTeamAdmin />
+                <TeamManagementNew />
               </TabsContent>
               
               <TabsContent value="panchayaths" className="mt-6">
