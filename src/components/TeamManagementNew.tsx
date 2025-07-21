@@ -5,9 +5,34 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Trash2, Edit, Plus, Users } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Trash2, Edit, Plus, Users, X, UserPlus } from "lucide-react";
 import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
+
+interface Agent {
+  id: string;
+  name: string;
+  role: string;
+  email?: string;
+  phone?: string;
+  panchayath_id: string;
+}
+
+interface Panchayath {
+  id: string;
+  name: string;
+  district: string;
+  state: string;
+}
+
+interface TeamMember {
+  id: string;
+  team_id: string;
+  agent_id: string;
+  agents: Agent;
+}
 
 interface Team {
   id: string;
@@ -18,11 +43,22 @@ interface Team {
 
 export const TeamManagementNew = () => {
   const [teams, setTeams] = useState<Team[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [panchayaths, setPanchayaths] = useState<Panchayath[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [formData, setFormData] = useState({
     name: '',
     description: ''
+  });
+  const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
+  const [selectedAgent, setSelectedAgent] = useState('');
+  const [manualMember, setManualMember] = useState({
+    name: '',
+    mobile: '',
+    panchayath_id: '',
+    reports_to: ''
   });
   
   const { toast } = useToast();
@@ -46,8 +82,75 @@ export const TeamManagementNew = () => {
     }
   };
 
+  const fetchAgents = async () => {
+    try {
+      const { data, error } = await typedSupabase
+        .from(TABLES.AGENTS)
+        .select('*')
+        .order('name');
+        
+      if (error) throw error;
+      setAgents(data || []);
+    } catch (error) {
+      console.error('Error fetching agents:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch agents",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchPanchayaths = async () => {
+    try {
+      const { data, error } = await typedSupabase
+        .from(TABLES.PANCHAYATHS)
+        .select('*')
+        .order('name');
+        
+      if (error) throw error;
+      setPanchayaths(data || []);
+    } catch (error) {
+      console.error('Error fetching panchayaths:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch panchayaths",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const fetchTeamMembers = async () => {
+    try {
+      const { data, error } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
+        .select(`
+          *,
+          agents (*)
+        `);
+        
+      if (error) throw error;
+      setTeamMembers(data || []);
+    } catch (error) {
+      console.error('Error fetching team members:', error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch team members",
+        variant: "destructive",
+      });
+    }
+  };
+
   useEffect(() => {
-    fetchTeams();
+    const fetchData = async () => {
+      await Promise.all([
+        fetchTeams(),
+        fetchAgents(),
+        fetchPanchayaths(),
+        fetchTeamMembers()
+      ]);
+    };
+    fetchData();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -79,14 +182,19 @@ export const TeamManagementNew = () => {
           description: "Team updated successfully",
         });
       } else {
-        const { error } = await typedSupabase
+        const { data: teamData, error } = await typedSupabase
           .from(TABLES.MANAGEMENT_TEAMS)
           .insert([{
             name: formData.name,
             description: formData.description
-          }]);
+          }])
+          .select()
+          .single();
 
         if (error) throw error;
+        
+        // Add team members
+        await handleTeamMembers(teamData.id);
         
         toast({
           title: "Success",
@@ -95,7 +203,7 @@ export const TeamManagementNew = () => {
       }
 
       resetForm();
-      fetchTeams();
+      await Promise.all([fetchTeams(), fetchTeamMembers(), fetchAgents()]);
     } catch (error) {
       console.error('Error saving team:', error);
       toast({
@@ -103,6 +211,50 @@ export const TeamManagementNew = () => {
         description: "Failed to save team",
         variant: "destructive",
       });
+    }
+  };
+
+  const handleTeamMembers = async (teamId: string) => {
+    // Add selected existing agents
+    if (selectedMembers.length > 0) {
+      const memberInserts = selectedMembers.map(agentId => ({
+        team_id: teamId,
+        agent_id: agentId
+      }));
+
+      const { error } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
+        .insert(memberInserts);
+
+      if (error) throw error;
+    }
+
+    // Add manual member if provided
+    if (manualMember.name && manualMember.mobile && manualMember.panchayath_id) {
+      // Create new agent
+      const { data: newAgent, error: agentError } = await typedSupabase
+        .from(TABLES.AGENTS)
+        .insert({
+          name: manualMember.name,
+          phone: manualMember.mobile,
+          role: 'coordinator',
+          panchayath_id: manualMember.panchayath_id,
+          superior_id: manualMember.reports_to || null
+        })
+        .select()
+        .single();
+
+      if (agentError) throw agentError;
+
+      // Add to team
+      const { error: memberError } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
+        .insert({
+          team_id: teamId,
+          agent_id: newAgent.id
+        });
+
+      if (memberError) throw memberError;
     }
   };
 
@@ -135,6 +287,9 @@ export const TeamManagementNew = () => {
 
   const resetForm = () => {
     setFormData({ name: '', description: '' });
+    setSelectedMembers([]);
+    setSelectedAgent('');
+    setManualMember({ name: '', mobile: '', panchayath_id: '', reports_to: '' });
     setEditingTeam(null);
     setIsDialogOpen(false);
   };
@@ -145,7 +300,39 @@ export const TeamManagementNew = () => {
       name: team.name,
       description: team.description || ''
     });
+    // Load existing team members
+    const existingMembers = teamMembers
+      .filter(member => member.team_id === team.id)
+      .map(member => member.agent_id);
+    setSelectedMembers(existingMembers);
     setIsDialogOpen(true);
+  };
+
+  const addSelectedAgent = () => {
+    if (selectedAgent && !selectedMembers.includes(selectedAgent)) {
+      setSelectedMembers([...selectedMembers, selectedAgent]);
+      setSelectedAgent('');
+    }
+  };
+
+  const removeMember = (agentId: string) => {
+    setSelectedMembers(selectedMembers.filter(id => id !== agentId));
+  };
+
+  const getAgentName = (agentId: string) => {
+    const agent = agents.find(a => a.id === agentId);
+    return agent ? `${agent.name} (${agent.role})` : 'Unknown Agent';
+  };
+
+  const getTeamMemberCount = (teamId: string) => {
+    return teamMembers.filter(member => member.team_id === teamId).length;
+  };
+
+  const getTeamMembersList = (teamId: string) => {
+    return teamMembers
+      .filter(member => member.team_id === teamId)
+      .map(member => member.agents?.name || 'Unknown')
+      .slice(0, 3);
   };
 
   return (
@@ -168,7 +355,7 @@ export const TeamManagementNew = () => {
                 {editingTeam ? 'Edit Team' : 'Create New Team'}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4">
+            <form onSubmit={handleSubmit} className="space-y-6">
               <div>
                 <Label htmlFor="name">Team Name *</Label>
                 <Input
@@ -179,6 +366,7 @@ export const TeamManagementNew = () => {
                   required
                 />
               </div>
+              
               <div>
                 <Label htmlFor="description">Description</Label>
                 <Textarea
@@ -189,6 +377,109 @@ export const TeamManagementNew = () => {
                   rows={3}
                 />
               </div>
+
+              {/* Team Members Section */}
+              <div className="space-y-4">
+                <Label className="text-base font-semibold">Team Members</Label>
+                
+                {/* Select from existing agents */}
+                <div className="space-y-2">
+                  <Label className="text-sm">Add from existing agents</Label>
+                  <div className="flex gap-2">
+                    <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                      <SelectTrigger className="flex-1">
+                        <SelectValue placeholder="Select an agent" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {agents
+                          .filter(agent => !selectedMembers.includes(agent.id))
+                          .map((agent) => (
+                            <SelectItem key={agent.id} value={agent.id}>
+                              {agent.name} ({agent.role})
+                            </SelectItem>
+                          ))}
+                      </SelectContent>
+                    </Select>
+                    <Button type="button" onClick={addSelectedAgent} disabled={!selectedAgent}>
+                      <Plus className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Selected members display */}
+                {selectedMembers.length > 0 && (
+                  <div className="space-y-2">
+                    <Label className="text-sm">Selected members</Label>
+                    <div className="flex flex-wrap gap-2">
+                      {selectedMembers.map((agentId) => (
+                        <Badge key={agentId} variant="secondary" className="flex items-center gap-1">
+                          {getAgentName(agentId)}
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="h-4 w-4 p-0"
+                            onClick={() => removeMember(agentId)}
+                          >
+                            <X className="h-3 w-3" />
+                          </Button>
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* Manual member addition */}
+                <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                  <Label className="text-sm font-medium flex items-center gap-2">
+                    <UserPlus className="h-4 w-4" />
+                    Add member manually
+                  </Label>
+                  <div className="grid grid-cols-1 gap-3">
+                    <Input
+                      placeholder="Member name"
+                      value={manualMember.name}
+                      onChange={(e) => setManualMember({ ...manualMember, name: e.target.value })}
+                    />
+                    <Input
+                      placeholder="Mobile number"
+                      value={manualMember.mobile}
+                      onChange={(e) => setManualMember({ ...manualMember, mobile: e.target.value })}
+                    />
+                    <Select 
+                      value={manualMember.panchayath_id} 
+                      onValueChange={(value) => setManualMember({ ...manualMember, panchayath_id: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select panchayath" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {panchayaths.map((panchayath) => (
+                          <SelectItem key={panchayath.id} value={panchayath.id}>
+                            {panchayath.name} - {panchayath.district}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <Select 
+                      value={manualMember.reports_to} 
+                      onValueChange={(value) => setManualMember({ ...manualMember, reports_to: value })}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Reports to (optional)" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {agents.map((agent) => (
+                          <SelectItem key={agent.id} value={agent.id}>
+                            {agent.name} ({agent.role})
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+
               <div className="flex justify-end gap-2">
                 <Button type="button" variant="outline" onClick={resetForm}>
                   Cancel
@@ -227,8 +518,23 @@ export const TeamManagementNew = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <p className="text-muted-foreground">{team.description}</p>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-muted-foreground mb-3">{team.description}</p>
+              
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <Users className="h-4 w-4" />
+                  <span className="font-medium">{getTeamMemberCount(team.id)} members</span>
+                </div>
+                
+                {getTeamMemberCount(team.id) > 0 && (
+                  <div className="text-sm text-muted-foreground">
+                    Members: {getTeamMembersList(team.id).join(', ')}
+                    {getTeamMemberCount(team.id) > 3 && ` +${getTeamMemberCount(team.id) - 3} more`}
+                  </div>
+                )}
+              </div>
+              
+              <p className="text-xs text-muted-foreground mt-3">
                 Created: {new Date(team.created_at).toLocaleDateString()}
               </p>
             </CardContent>
