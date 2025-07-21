@@ -43,9 +43,7 @@ const Index = () => {
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <Users className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">
-                Staff Management
-              </CardTitle>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-blue-600 transition-colors">ഏജന്റിനെ ചേര്‍ക്കുക</CardTitle>
               <CardDescription className="text-gray-600">
                 Manage agents and staff members for efficient operations
               </CardDescription>
@@ -65,9 +63,7 @@ const Index = () => {
               <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-teal-500 to-cyan-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                 <CalendarDays className="h-8 w-8 text-white" />
               </div>
-              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-teal-600 transition-colors">
-                Daily Activity Log
-              </CardTitle>
+              <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-teal-600 transition-colors">ഡെയിലി നോട്ട്</CardTitle>
               <CardDescription className="text-gray-600">
                 Log and track daily activities for agents
               </CardDescription>
@@ -86,9 +82,7 @@ const Index = () => {
                   <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <TreePine className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">
-                    View Hierarchy
-                  </CardTitle>
+                  <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-green-600 transition-colors">ഏജൻ്റ് ശ്രേണി കാണുക</CardTitle>
                   <CardDescription className="text-gray-600">
                     Visualize organizational structure and agent relationships in interactive charts
                   </CardDescription>
@@ -108,9 +102,8 @@ const Index = () => {
                   <div className="mx-auto mb-4 h-16 w-16 rounded-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
                     <CheckSquare className="h-8 w-8 text-white" />
                   </div>
-                  <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">
-                    Task Management
-                  </CardTitle>
+                  <CardTitle className="text-xl font-bold text-gray-800 group-hover:text-purple-600 transition-colors">ടാസ്ക് മാനേജ്മെൻ്റ്
+              </CardTitle>
                   <CardDescription className="text-gray-600">
                     Create, assign, and track tasks for teams and individual agents
                   </CardDescription>
