@@ -1,5 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
+import { useForm } from 'react-hook-form';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -33,17 +33,18 @@ interface TeamMember {
   };
 }
 
+interface FormData {
+  name: string;
+  description: string;
+  members: string[];
+}
+
 export const ManagementTeamAdmin = () => {
   const [teams, setTeams] = useState<ManagementTeam[]>([]);
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<ManagementTeam | null>(null);
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    members: [] as string[]
-  });
   const [selectedAgent, setSelectedAgent] = useState('');
   const [manualMemberName, setManualMemberName] = useState('');
   const [manualMemberMobile, setManualMemberMobile] = useState('');
@@ -53,6 +54,17 @@ export const ManagementTeamAdmin = () => {
   
   const { agents } = useSupabaseHierarchy();
   const { toast } = useToast();
+
+  const form = useForm<FormData>({
+    defaultValues: {
+      name: '',
+      description: '',
+      members: []
+    }
+  });
+
+  const { register, handleSubmit, setValue, watch, reset } = form;
+  const formValues = watch();
 
   useEffect(() => {
     fetchTeams();
@@ -123,9 +135,8 @@ export const ManagementTeamAdmin = () => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!formData.name.trim()) {
+  const onSubmit = async (data: FormData) => {
+    if (!data.name.trim()) {
       toast({
         title: "Error",
         description: "Team name is required",
@@ -142,8 +153,8 @@ export const ManagementTeamAdmin = () => {
         const { error } = await supabase
           .from('management_teams')
           .update({
-            name: formData.name,
-            description: formData.description
+            name: data.name,
+            description: data.description
           })
           .eq('id', editingTeam.id);
 
@@ -156,17 +167,17 @@ export const ManagementTeamAdmin = () => {
         });
       } else {
         // Create new team
-        const { data, error } = await supabase
+        const { data: teamData, error } = await supabase
           .from('management_teams')
           .insert([{
-            name: formData.name,
-            description: formData.description
+            name: data.name,
+            description: data.description
           }])
           .select()
           .single();
 
         if (error) throw error;
-        teamId = data.id;
+        teamId = teamData.id;
         
         toast({
           title: "Success",
@@ -184,8 +195,8 @@ export const ManagementTeamAdmin = () => {
       }
 
       // Add new members
-      if (formData.members.length > 0) {
-        const memberInserts = formData.members.map(agentId => ({
+      if (data.members.length > 0) {
+        const memberInserts = data.members.map(agentId => ({
           team_id: teamId,
           agent_id: agentId
         }));
@@ -237,7 +248,7 @@ export const ManagementTeamAdmin = () => {
   };
 
   const resetForm = () => {
-    setFormData({
+    reset({
       name: '',
       description: '',
       members: []
@@ -254,7 +265,7 @@ export const ManagementTeamAdmin = () => {
 
   const handleEdit = (team: ManagementTeam) => {
     setEditingTeam(team);
-    setFormData({
+    reset({
       name: team.name,
       description: team.description || '',
       members: getTeamMemberIds(team.id)
@@ -273,11 +284,8 @@ export const ManagementTeamAdmin = () => {
   };
 
   const addMember = () => {
-    if (selectedAgent && !formData.members.includes(selectedAgent)) {
-      setFormData(prev => ({
-        ...prev,
-        members: [...prev.members, selectedAgent]
-      }));
+    if (selectedAgent && !formValues.members.includes(selectedAgent)) {
+      setValue('members', [...formValues.members, selectedAgent]);
       setSelectedAgent('');
     }
   };
@@ -309,10 +317,7 @@ export const ManagementTeamAdmin = () => {
       if (error) throw error;
 
       // Add to form members
-      setFormData(prev => ({
-        ...prev,
-        members: [...prev.members, newAgent.id]
-      }));
+      setValue('members', [...formValues.members, newAgent.id]);
 
       setManualMemberName('');
       setManualMemberMobile('');
@@ -337,10 +342,7 @@ export const ManagementTeamAdmin = () => {
   };
 
   const removeMember = (agentId: string) => {
-    setFormData(prev => ({
-      ...prev,
-      members: prev.members.filter(id => id !== agentId)
-    }));
+    setValue('members', formValues.members.filter(id => id !== agentId));
   };
 
   const getAgentName = (agentId: string) => {
@@ -349,22 +351,14 @@ export const ManagementTeamAdmin = () => {
   };
 
   const TeamForm = () => (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
       <div>
         <Label htmlFor="name">Team Name *</Label>
         <Input
           id="name"
-          type="text"
-          value={formData.name}
-          onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+          {...register('name', { required: true })}
           placeholder="Enter team name"
-          autoComplete="off"
-          inputMode="text"
-          autoFocus={false}
-          spellCheck={false}
-          autoCapitalize="words"
           style={{ fontSize: '16px' }}
-          required
         />
       </div>
 
@@ -372,8 +366,7 @@ export const ManagementTeamAdmin = () => {
         <Label htmlFor="description">Description</Label>
         <Textarea
           id="description"
-          value={formData.description}
-          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          {...register('description')}
           placeholder="Enter team description"
           rows={3}
         />
@@ -388,7 +381,7 @@ export const ManagementTeamAdmin = () => {
             </SelectTrigger>
             <SelectContent>
               {agents
-                .filter(agent => !formData.members.includes(agent.id))
+                .filter(agent => !formValues.members.includes(agent.id))
                 .map((agent) => (
                   <SelectItem key={agent.id} value={agent.id}>
                     {agent.name} ({agent.role})
@@ -402,7 +395,7 @@ export const ManagementTeamAdmin = () => {
         </div>
         
         <div className="flex flex-wrap gap-2">
-          {formData.members.map((agentId) => (
+          {formValues.members.map((agentId) => (
             <Badge key={agentId} variant="secondary" className="flex items-center gap-1">
               {getAgentName(agentId)}
               <Button
@@ -426,11 +419,13 @@ export const ManagementTeamAdmin = () => {
               placeholder="Member name *"
               value={manualMemberName}
               onChange={(e) => setManualMemberName(e.target.value)}
+              style={{ fontSize: '16px' }}
             />
             <Input
               placeholder="Mobile number *"
               value={manualMemberMobile}
               onChange={(e) => setManualMemberMobile(e.target.value)}
+              style={{ fontSize: '16px' }}
             />
             <Select value={manualMemberPanchayath} onValueChange={setManualMemberPanchayath}>
               <SelectTrigger>
