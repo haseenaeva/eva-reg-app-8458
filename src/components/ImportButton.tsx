@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Upload, FileSpreadsheet, Download } from "lucide-react";
 import { createSampleHierarchyFile } from "@/utils/createSampleHierarchy";
 import { useToast } from "@/hooks/use-toast";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import * as XLSX from 'xlsx';
 
 interface ImportButtonProps {

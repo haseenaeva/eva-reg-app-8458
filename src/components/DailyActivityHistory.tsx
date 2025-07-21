@@ -5,7 +5,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Clock, History } from "lucide-react";
 import { format, parseISO } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface DailyActivity {
@@ -33,8 +33,8 @@ export const DailyActivityHistory = ({ agentId, agentName }: DailyActivityHistor
     
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('daily_activities')
+      const { data, error } = await typedSupabase
+        .from(TABLES.DAILY_ACTIVITIES)
         .select('*')
         .eq('agent_id', agentId)
         .order('activity_date', { ascending: false });

@@ -5,7 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Check, X, Clock, Phone, User } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthProvider";
 
@@ -35,8 +35,8 @@ export const AdminApprovalPanel = () => {
 
   const fetchRequests = async () => {
     try {
-      const { data, error } = await supabase
-        .from('user_registration_requests')
+      const { data, error } = await typedSupabase
+        .from(TABLES.USER_REGISTRATION_REQUESTS)
         .select('*')
         .order('created_at', { ascending: false });
 
@@ -58,8 +58,8 @@ export const AdminApprovalPanel = () => {
     try {
       const newStatus = action === 'approve' ? 'approved' : 'rejected';
       
-      const { error } = await supabase
-        .from('user_registration_requests')
+      const { error } = await typedSupabase
+        .from(TABLES.USER_REGISTRATION_REQUESTS)
         .update({
           status: newStatus,
           approved_by: user?.username || 'admin'

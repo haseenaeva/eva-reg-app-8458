@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Phone, User, AlertCircle, CheckCircle, MapPin } from "lucide-react";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface Panchayath {
@@ -31,8 +31,8 @@ export const GuestRegistrationForm = () => {
   useEffect(() => {
     const fetchPanchayaths = async () => {
       try {
-        const { data, error } = await supabase
-          .from('panchayaths')
+        const { data, error } = await typedSupabase
+          .from(TABLES.PANCHAYATHS)
           .select('id, name, district, state')
           .order('name');
 
@@ -81,8 +81,8 @@ export const GuestRegistrationForm = () => {
       }
 
       // Submit registration request
-      const { error } = await supabase
-        .from('user_registration_requests')
+      const { error } = await typedSupabase
+        .from(TABLES.USER_REGISTRATION_REQUESTS)
         .insert({
           username: formData.username.trim(),
           mobile_number: formData.mobileNumber,

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { User, Phone, Trash2 } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
 import { StarRating } from "./StarRating";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 
 interface AgentRatingsProps {
@@ -26,8 +26,8 @@ export const AgentRatings = ({ agents, panchayathName, isSuperAdmin = false }: A
 
   const fetchExistingRatings = async () => {
     try {
-      const { data, error } = await supabase
-        .from('agent_ratings')
+      const { data, error } = await typedSupabase
+        .from(TABLES.AGENT_RATINGS)
         .select('*')
         .in('agent_id', agents.map(a => a.id));
 
@@ -47,8 +47,8 @@ export const AgentRatings = ({ agents, panchayathName, isSuperAdmin = false }: A
 
   const deleteRating = async (ratingId: string) => {
     try {
-      const { error } = await supabase
-        .from('agent_ratings')
+      const { error } = await typedSupabase
+        .from(TABLES.AGENT_RATINGS)
         .delete()
         .eq('id', ratingId);
 

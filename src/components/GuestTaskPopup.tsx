@@ -3,7 +3,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { CalendarDays, Clock, User } from "lucide-react";
 import { format, parseISO } from "date-fns";
 
@@ -37,8 +37,8 @@ export const GuestTaskPopup = ({ isOpen, onClose, mobileNumber }: GuestTaskPopup
     setLoading(true);
     try {
       // First, find the agent by mobile number
-      const { data: agent, error: agentError } = await supabase
-        .from('agents')
+      const { data: agent, error: agentError } = await typedSupabase
+        .from(TABLES.AGENTS)
         .select('id')
         .eq('phone', mobileNumber)
         .maybeSingle();
@@ -47,8 +47,8 @@ export const GuestTaskPopup = ({ isOpen, onClose, mobileNumber }: GuestTaskPopup
 
       if (agent) {
         // Fetch tasks allocated to this agent
-        const { data: agentTasks, error: tasksError } = await supabase
-          .from('tasks')
+        const { data: agentTasks, error: tasksError } = await typedSupabase
+          .from(TABLES.TASKS)
           .select('*')
           .eq('allocated_to_agent', agent.id)
           .order('created_at', { ascending: false });

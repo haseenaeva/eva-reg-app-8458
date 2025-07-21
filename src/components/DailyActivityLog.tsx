@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarDays, Clock, User, Phone } from "lucide-react";
 import { format, parseISO, isBefore, startOfToday } from "date-fns";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
 
@@ -62,8 +62,8 @@ export const DailyActivityLog = () => {
 
     setLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('agents')
+      const { data, error } = await typedSupabase
+        .from(TABLES.AGENTS)
         .select('*')
         .eq('phone', mobileNumber)
         .limit(1)
@@ -95,8 +95,8 @@ export const DailyActivityLog = () => {
 
   const fetchActivities = async (agentId: string) => {
     try {
-      const { data, error } = await supabase
-        .from('daily_activities')
+      const { data, error } = await typedSupabase
+        .from(TABLES.DAILY_ACTIVITIES)
         .select('*')
         .eq('agent_id', agentId)
         .order('activity_date', { ascending: false });
@@ -174,8 +174,8 @@ export const DailyActivityLog = () => {
 
       if (existingActivity) {
         // Update existing activity
-        const { error } = await supabase
-          .from('daily_activities')
+        const { error } = await typedSupabase
+          .from(TABLES.DAILY_ACTIVITIES)
           .update({
             activity_description: activityText,
             updated_at: new Date().toISOString()
@@ -190,8 +190,8 @@ export const DailyActivityLog = () => {
         });
       } else {
         // Create new activity
-        const { error } = await supabase
-          .from('daily_activities')
+        const { error } = await typedSupabase
+          .from(TABLES.DAILY_ACTIVITIES)
           .insert([{
             agent_id: currentAgent.id,
             mobile_number: mobileNumber,

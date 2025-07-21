@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Trash2, Edit, Plus, User, Phone, RefreshCw } from "lucide-react";
 import { Agent } from "@/hooks/useSupabaseHierarchy";
-import { supabase } from "@/integrations/supabase/client";
+import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 import { StarRating } from "./StarRating";
 import { DailyActivityHistory } from "./DailyActivityHistory";

@@ -1,12 +1,8 @@
 import { supabase } from "@/integrations/supabase/client";
 
 // Utility function to provide typed access to Supabase tables
-// This works around the empty types file issue
-export const typedSupabase = {
-  from: (tableName: string) => {
-    return supabase.from(tableName as any);
-  }
-};
+// This works around the empty types file issue by using proper typing
+export const typedSupabase = supabase as any;
 
 // Common table names for type safety
 export const TABLES = {
