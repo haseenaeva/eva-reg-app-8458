@@ -5,9 +5,10 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Edit, Plus, Users, X, UserPlus } from "lucide-react";
+import { Trash2, Edit, Plus, Users, X, UserPlus, MoreVertical, Eye, EyeOff } from "lucide-react";
 import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 
@@ -39,6 +40,7 @@ interface Team {
   name: string;
   description: string;
   created_at: string;
+  is_active?: boolean;
 }
 
 export const TeamManagementNew = () => {
@@ -286,6 +288,31 @@ export const TeamManagementNew = () => {
     }
   };
 
+  const handleToggleStatus = async (teamId: string, currentStatus: boolean) => {
+    try {
+      const { error } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAMS)
+        .update({ is_active: !currentStatus })
+        .eq('id', teamId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: `Team ${!currentStatus ? 'activated' : 'deactivated'} successfully`,
+      });
+      
+      fetchTeams();
+    } catch (error) {
+      console.error('Error updating team status:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update team status",
+        variant: "destructive",
+      });
+    }
+  };
+
   const resetForm = () => {
     setFormData({ name: '', description: '' });
     setSelectedMembers([]);
@@ -516,23 +543,47 @@ export const TeamManagementNew = () => {
           <Card key={team.id}>
             <CardHeader>
               <CardTitle className="flex justify-between items-center">
-                <span>{team.name}</span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleEdit(team)}
-                  >
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => handleDelete(team.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
+                <div className="flex items-center gap-2">
+                  <span>{team.name}</span>
+                  <Badge variant={team.is_active !== false ? "default" : "secondary"}>
+                    {team.is_active !== false ? "Active" : "Inactive"}
+                  </Badge>
                 </div>
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end">
+                    <DropdownMenuItem onClick={() => handleEdit(team)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleToggleStatus(team.id, team.is_active !== false)}
+                    >
+                      {team.is_active !== false ? (
+                        <>
+                          <EyeOff className="mr-2 h-4 w-4" />
+                          Deactivate
+                        </>
+                      ) : (
+                        <>
+                          <Eye className="mr-2 h-4 w-4" />
+                          Activate
+                        </>
+                      )}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleDelete(team.id)}
+                      className="text-destructive"
+                    >
+                      <Trash2 className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </CardTitle>
             </CardHeader>
             <CardContent>

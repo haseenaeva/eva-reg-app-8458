@@ -10,6 +10,7 @@ import { AddPanchayathForm } from "@/components/AddPanchayathForm";
 import { useAuth } from "@/components/AuthProvider";
 import LoginForm from "@/components/LoginForm";
 import { AdminApprovalPanel } from "@/components/AdminApprovalPanel";
+import { UserManagement } from "@/components/UserManagement";
 
 const AdminPanelContent = () => {
   const { user, logout } = useAuth();
@@ -96,11 +97,11 @@ const AdminPanelContent = () => {
                   <CardHeader>
                     <CardTitle>System Settings</CardTitle>
                     <CardDescription>
-                      Configure system-wide settings and preferences
+                      Create and manage team management users with access permissions
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <p className="text-gray-600">System settings will be implemented here.</p>
+                    <UserManagement />
                   </CardContent>
                 </Card>
               </TabsContent>
