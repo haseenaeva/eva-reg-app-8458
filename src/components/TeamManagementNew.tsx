@@ -351,160 +351,162 @@ export const TeamManagementNew = () => {
               Create Team
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>
                 {editingTeam ? 'Edit Team' : 'Create New Team'}
               </DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              <div>
-                <Label htmlFor="name">Team Name *</Label>
-                <Input
-                  id="name"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  placeholder="Enter team name"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  value={formData.description}
-                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Enter team description"
-                  rows={3}
-                />
-              </div>
-
-              {/* Team Members Section */}
-              <div className="space-y-4">
-                <Label className="text-base font-semibold">Team Members</Label>
+            <div className="max-h-[calc(90vh-8rem)] overflow-y-auto pr-2">
+              <form onSubmit={handleSubmit} className="space-y-6">
+                <div>
+                  <Label htmlFor="name">Team Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                    placeholder="Enter team name"
+                    required
+                  />
+                </div>
                 
-                {/* Select from existing agents */}
-                <div className="space-y-2">
-                  <Label className="text-sm">Add from existing agents</Label>
-                  <div className="flex gap-2 mb-2">
-                    <Input
-                      placeholder="Search by mobile number"
-                      value={searchMobile}
-                      onChange={(e) => setSearchMobile(e.target.value)}
-                      className="flex-1"
-                    />
-                  </div>
-                  <div className="flex gap-2">
-                    <Select value={selectedAgent} onValueChange={setSelectedAgent}>
-                      <SelectTrigger className="flex-1">
-                        <SelectValue placeholder="Select an agent" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        {agents
-                          .filter(agent => !selectedMembers.includes(agent.id))
-                          .filter(agent => 
-                            !searchMobile || 
-                            (agent.phone && agent.phone.includes(searchMobile))
-                          )
-                          .map((agent) => (
-                            <SelectItem key={agent.id} value={agent.id}>
-                              {agent.name} ({agent.role}) - {agent.phone || 'No phone'}
-                            </SelectItem>
-                          ))}
-                      </SelectContent>
-                    </Select>
-                    <Button type="button" onClick={addSelectedAgent} disabled={!selectedAgent}>
-                      <Plus className="h-4 w-4" />
-                    </Button>
-                  </div>
+                <div>
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    placeholder="Enter team description"
+                    rows={3}
+                  />
                 </div>
 
-                {/* Selected members display */}
-                {selectedMembers.length > 0 && (
-                  <div className="space-y-2">
-                    <Label className="text-sm">Selected members</Label>
-                    <div className="max-h-32 overflow-y-auto p-2 border rounded-md bg-muted/20">
-                      <div className="flex flex-wrap gap-2">
-                        {selectedMembers.map((agentId) => (
-                          <Badge key={agentId} variant="secondary" className="flex items-center gap-1">
-                            {getAgentName(agentId)}
-                            <Button
-                              type="button"
-                              variant="ghost"
-                              size="sm"
-                              className="h-4 w-4 p-0"
-                              onClick={() => removeMember(agentId)}
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </Badge>
-                        ))}
+                {/* Team Members Section */}
+                <div className="space-y-4 border-t pt-4">
+                  <Label className="text-base font-semibold">Team Members</Label>
+                  
+                  {/* Select from existing agents */}
+                  <div className="space-y-3 p-4 border rounded-lg bg-background">
+                    <Label className="text-sm font-medium">Add from existing agents</Label>
+                    <div className="space-y-2">
+                      <Input
+                        placeholder="Search by mobile number"
+                        value={searchMobile}
+                        onChange={(e) => setSearchMobile(e.target.value)}
+                        className="w-full"
+                      />
+                      <div className="flex gap-2">
+                        <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                          <SelectTrigger className="flex-1">
+                            <SelectValue placeholder="Select an agent" />
+                          </SelectTrigger>
+                          <SelectContent className="max-h-48 overflow-y-auto bg-background border shadow-md z-50">
+                            {agents
+                              .filter(agent => !selectedMembers.includes(agent.id))
+                              .filter(agent => 
+                                !searchMobile || 
+                                (agent.phone && agent.phone.includes(searchMobile))
+                              )
+                              .map((agent) => (
+                                <SelectItem key={agent.id} value={agent.id}>
+                                  {agent.name} ({agent.role}) - {agent.phone || 'No phone'}
+                                </SelectItem>
+                              ))}
+                          </SelectContent>
+                        </Select>
+                        <Button type="button" onClick={addSelectedAgent} disabled={!selectedAgent}>
+                          <Plus className="h-4 w-4" />
+                        </Button>
                       </div>
                     </div>
                   </div>
-                )}
 
-                {/* Manual member addition */}
-                <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
-                  <Label className="text-sm font-medium flex items-center gap-2">
-                    <UserPlus className="h-4 w-4" />
-                    Add member manually
-                  </Label>
-                  <div className="grid grid-cols-1 gap-3">
-                    <Input
-                      placeholder="Member name"
-                      value={manualMember.name}
-                      onChange={(e) => setManualMember({ ...manualMember, name: e.target.value })}
-                    />
-                    <Input
-                      placeholder="Mobile number"
-                      value={manualMember.mobile}
-                      onChange={(e) => setManualMember({ ...manualMember, mobile: e.target.value })}
-                    />
-                    <Select 
-                      value={manualMember.panchayath_id} 
-                      onValueChange={(value) => setManualMember({ ...manualMember, panchayath_id: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select panchayath" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {panchayaths.map((panchayath) => (
-                          <SelectItem key={panchayath.id} value={panchayath.id}>
-                            {panchayath.name} - {panchayath.district}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <Select 
-                      value={manualMember.reports_to} 
-                      onValueChange={(value) => setManualMember({ ...manualMember, reports_to: value })}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select team (optional)" />
-                      </SelectTrigger>
-                      <SelectContent className="max-h-60 overflow-y-auto">
-                        {teams.map((team) => (
-                          <SelectItem key={team.id} value={team.id}>
-                            {team.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  {/* Selected members display */}
+                  {selectedMembers.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Selected members ({selectedMembers.length})</Label>
+                      <div className="max-h-32 overflow-y-auto p-3 border rounded-md bg-muted/20">
+                        <div className="flex flex-wrap gap-2">
+                          {selectedMembers.map((agentId) => (
+                            <Badge key={agentId} variant="secondary" className="flex items-center gap-1">
+                              {getAgentName(agentId)}
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="sm"
+                                className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
+                                onClick={() => removeMember(agentId)}
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </Badge>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Manual member addition */}
+                  <div className="p-4 border rounded-lg bg-muted/30 space-y-3">
+                    <Label className="text-sm font-medium flex items-center gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Add member manually
+                    </Label>
+                    <div className="grid grid-cols-1 gap-3">
+                      <Input
+                        placeholder="Member name"
+                        value={manualMember.name}
+                        onChange={(e) => setManualMember({ ...manualMember, name: e.target.value })}
+                      />
+                      <Input
+                        placeholder="Mobile number"
+                        value={manualMember.mobile}
+                        onChange={(e) => setManualMember({ ...manualMember, mobile: e.target.value })}
+                      />
+                      <Select 
+                        value={manualMember.panchayath_id} 
+                        onValueChange={(value) => setManualMember({ ...manualMember, panchayath_id: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select panchayath" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-48 overflow-y-auto bg-background border shadow-md z-50">
+                          {panchayaths.map((panchayath) => (
+                            <SelectItem key={panchayath.id} value={panchayath.id}>
+                              {panchayath.name} - {panchayath.district}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <Select 
+                        value={manualMember.reports_to} 
+                        onValueChange={(value) => setManualMember({ ...manualMember, reports_to: value })}
+                      >
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select team (optional)" />
+                        </SelectTrigger>
+                        <SelectContent className="max-h-48 overflow-y-auto bg-background border shadow-md z-50">
+                          {teams.map((team) => (
+                            <SelectItem key={team.id} value={team.id}>
+                              {team.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={resetForm}>
-                  Cancel
-                </Button>
-                <Button type="submit">
-                  {editingTeam ? 'Update' : 'Create'}
-                </Button>
-              </div>
-            </form>
+                <div className="flex justify-end gap-2 pt-4 border-t">
+                  <Button type="button" variant="outline" onClick={resetForm}>
+                    Cancel
+                  </Button>
+                  <Button type="submit">
+                    {editingTeam ? 'Update' : 'Create'}
+                  </Button>
+                </div>
+              </form>
+            </div>
           </DialogContent>
         </Dialog>
       </div>
