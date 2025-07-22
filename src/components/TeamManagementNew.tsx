@@ -54,6 +54,7 @@ export const TeamManagementNew = () => {
   });
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedAgent, setSelectedAgent] = useState('');
+  const [searchMobile, setSearchMobile] = useState('');
   const [manualMember, setManualMember] = useState({
     name: '',
     mobile: '',
@@ -289,6 +290,7 @@ export const TeamManagementNew = () => {
     setFormData({ name: '', description: '' });
     setSelectedMembers([]);
     setSelectedAgent('');
+    setSearchMobile('');
     setManualMember({ name: '', mobile: '', panchayath_id: '', reports_to: '' });
     setEditingTeam(null);
     setIsDialogOpen(false);
@@ -385,17 +387,29 @@ export const TeamManagementNew = () => {
                 {/* Select from existing agents */}
                 <div className="space-y-2">
                   <Label className="text-sm">Add from existing agents</Label>
+                  <div className="flex gap-2 mb-2">
+                    <Input
+                      placeholder="Search by mobile number"
+                      value={searchMobile}
+                      onChange={(e) => setSearchMobile(e.target.value)}
+                      className="flex-1"
+                    />
+                  </div>
                   <div className="flex gap-2">
                     <Select value={selectedAgent} onValueChange={setSelectedAgent}>
                       <SelectTrigger className="flex-1">
                         <SelectValue placeholder="Select an agent" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-60 overflow-y-auto">
                         {agents
                           .filter(agent => !selectedMembers.includes(agent.id))
+                          .filter(agent => 
+                            !searchMobile || 
+                            (agent.phone && agent.phone.includes(searchMobile))
+                          )
                           .map((agent) => (
                             <SelectItem key={agent.id} value={agent.id}>
-                              {agent.name} ({agent.role})
+                              {agent.name} ({agent.role}) - {agent.phone || 'No phone'}
                             </SelectItem>
                           ))}
                       </SelectContent>
@@ -410,21 +424,23 @@ export const TeamManagementNew = () => {
                 {selectedMembers.length > 0 && (
                   <div className="space-y-2">
                     <Label className="text-sm">Selected members</Label>
-                    <div className="flex flex-wrap gap-2">
-                      {selectedMembers.map((agentId) => (
-                        <Badge key={agentId} variant="secondary" className="flex items-center gap-1">
-                          {getAgentName(agentId)}
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="h-4 w-4 p-0"
-                            onClick={() => removeMember(agentId)}
-                          >
-                            <X className="h-3 w-3" />
-                          </Button>
-                        </Badge>
-                      ))}
+                    <div className="max-h-32 overflow-y-auto p-2 border rounded-md bg-muted/20">
+                      <div className="flex flex-wrap gap-2">
+                        {selectedMembers.map((agentId) => (
+                          <Badge key={agentId} variant="secondary" className="flex items-center gap-1">
+                            {getAgentName(agentId)}
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              className="h-4 w-4 p-0"
+                              onClick={() => removeMember(agentId)}
+                            >
+                              <X className="h-3 w-3" />
+                            </Button>
+                          </Badge>
+                        ))}
+                      </div>
                     </div>
                   </div>
                 )}
@@ -466,12 +482,12 @@ export const TeamManagementNew = () => {
                       onValueChange={(value) => setManualMember({ ...manualMember, reports_to: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Reports to (optional)" />
+                        <SelectValue placeholder="Select team (optional)" />
                       </SelectTrigger>
-                      <SelectContent>
-                        {agents.map((agent) => (
-                          <SelectItem key={agent.id} value={agent.id}>
-                            {agent.name} ({agent.role})
+                      <SelectContent className="max-h-60 overflow-y-auto">
+                        {teams.map((team) => (
+                          <SelectItem key={team.id} value={team.id}>
+                            {team.name}
                           </SelectItem>
                         ))}
                       </SelectContent>
