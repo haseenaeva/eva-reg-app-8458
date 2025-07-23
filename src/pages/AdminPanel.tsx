@@ -3,7 +3,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { ArrowLeft, Settings, Users, LogOut, MapPin, UserCheck } from "lucide-react";
+import { ArrowLeft, Settings, Users, LogOut, MapPin, UserCheck, Shield } from "lucide-react";
 import { Link } from "react-router-dom";
 import { TeamManagementNew } from "@/components/TeamManagementNew";
 import { AddPanchayathForm } from "@/components/AddPanchayathForm";
@@ -11,6 +11,7 @@ import { useAuth } from "@/components/AuthProvider";
 import LoginForm from "@/components/LoginForm";
 import { AdminApprovalPanel } from "@/components/AdminApprovalPanel";
 import { UserManagement } from "@/components/UserManagement";
+import { AdminPermissionsManager } from "@/components/AdminPermissionsManager";
 
 const AdminPanelContent = () => {
   const { user, logout } = useAuth();
@@ -51,7 +52,7 @@ const AdminPanelContent = () => {
         <Card>
           <CardContent className="p-6">
             <Tabs defaultValue="teams" className="w-full">
-              <TabsList className="grid w-full grid-cols-4">
+              <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="teams" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Management Teams
@@ -63,6 +64,10 @@ const AdminPanelContent = () => {
                 <TabsTrigger value="approvals" className="flex items-center gap-2">
                   <UserCheck className="h-4 w-4" />
                   Guest Approvals
+                </TabsTrigger>
+                <TabsTrigger value="permissions" className="flex items-center gap-2">
+                  <Shield className="h-4 w-4" />
+                  Permissions
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
@@ -90,6 +95,10 @@ const AdminPanelContent = () => {
               
               <TabsContent value="approvals" className="mt-6">
                 <AdminApprovalPanel />
+              </TabsContent>
+              
+              <TabsContent value="permissions" className="mt-6">
+                <AdminPermissionsManager />
               </TabsContent>
               
               <TabsContent value="settings" className="mt-6">

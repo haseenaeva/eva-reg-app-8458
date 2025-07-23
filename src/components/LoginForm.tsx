@@ -84,14 +84,6 @@ const LoginForm = () => {
             </Button>
           </form>
 
-          <div className="mt-6 text-sm text-gray-600">
-            <p className="font-medium mb-2">Test Credentials:</p>
-            <div className="space-y-1 text-xs">
-              <p><strong>Super Admin:</strong> evaadmin / eva919123</p>
-              <p><strong>Local Admin:</strong> admin1 / elife9094</p>
-              <p><strong>User Admin:</strong> admin2 / penny9094</p>
-            </div>
-          </div>
         </CardContent>
       </Card>
     </div>

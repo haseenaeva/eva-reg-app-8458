@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Check, X, Clock, Phone, User } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Check, X, Clock, Phone, User, Edit, Trash2 } from "lucide-react";
 import { typedSupabase, TABLES } from "@/lib/supabase-utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "./AuthProvider";
@@ -24,8 +26,13 @@ export const AdminApprovalPanel = () => {
   const [actionDialog, setActionDialog] = useState<{
     open: boolean;
     request: RegistrationRequest | null;
-    action: 'approve' | 'reject';
+    action: 'approve' | 'reject' | 'delete';
   }>({ open: false, request: null, action: 'approve' });
+  const [editDialog, setEditDialog] = useState<{
+    open: boolean;
+    request: RegistrationRequest | null;
+  }>({ open: false, request: null });
+  const [editForm, setEditForm] = useState({ username: '', mobile_number: '' });
   const { toast } = useToast();
   const { user } = useAuth();
 
@@ -54,24 +61,38 @@ export const AdminApprovalPanel = () => {
     }
   };
 
-  const handleAction = async (requestId: string, action: 'approve' | 'reject') => {
+  const handleAction = async (requestId: string, action: 'approve' | 'reject' | 'delete') => {
     try {
-      const newStatus = action === 'approve' ? 'approved' : 'rejected';
-      
-      const { error } = await typedSupabase
-        .from(TABLES.USER_REGISTRATION_REQUESTS)
-        .update({
-          status: newStatus,
-          approved_by: user?.username || 'admin'
-        })
-        .eq('id', requestId);
+      if (action === 'delete') {
+        const { error } = await typedSupabase
+          .from(TABLES.USER_REGISTRATION_REQUESTS)
+          .delete()
+          .eq('id', requestId);
 
-      if (error) throw error;
+        if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: `Request ${action}d successfully`,
-      });
+        toast({
+          title: "Success",
+          description: "Request deleted successfully",
+        });
+      } else {
+        const newStatus = action === 'approve' ? 'approved' : 'rejected';
+        
+        const { error } = await typedSupabase
+          .from(TABLES.USER_REGISTRATION_REQUESTS)
+          .update({
+            status: newStatus,
+            approved_by: user?.username || 'admin'
+          })
+          .eq('id', requestId);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: `Request ${action}d successfully`,
+        });
+      }
 
       fetchRequests(); // Refresh the list
       setActionDialog({ open: false, request: null, action: 'approve' });
@@ -83,6 +104,45 @@ export const AdminApprovalPanel = () => {
         variant: "destructive"
       });
     }
+  };
+
+  const handleEdit = async () => {
+    if (!editDialog.request) return;
+
+    try {
+      const { error } = await typedSupabase
+        .from(TABLES.USER_REGISTRATION_REQUESTS)
+        .update({
+          username: editForm.username,
+          mobile_number: editForm.mobile_number
+        })
+        .eq('id', editDialog.request.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Request updated successfully",
+      });
+
+      fetchRequests();
+      setEditDialog({ open: false, request: null });
+    } catch (error) {
+      console.error('Error updating request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update request",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const openEditDialog = (request: RegistrationRequest) => {
+    setEditForm({
+      username: request.username,
+      mobile_number: request.mobile_number
+    });
+    setEditDialog({ open: true, request });
   };
 
   const getStatusBadge = (status: string) => {
@@ -164,36 +224,64 @@ export const AdminApprovalPanel = () => {
                       {new Date(request.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      {request.status === 'pending' && (
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-green-600 border-green-200 hover:bg-green-50"
-                            onClick={() => setActionDialog({
-                              open: true,
-                              request,
-                              action: 'approve'
-                            })}
-                          >
-                            <Check className="w-4 h-4 mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            className="text-red-600 border-red-200 hover:bg-red-50"
-                            onClick={() => setActionDialog({
-                              open: true,
-                              request,
-                              action: 'reject'
-                            })}
-                          >
-                            <X className="w-4 h-4 mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        {request.status === 'pending' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-green-600 border-green-200 hover:bg-green-50"
+                              onClick={() => setActionDialog({
+                                open: true,
+                                request,
+                                action: 'approve'
+                              })}
+                            >
+                              <Check className="w-4 h-4 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => setActionDialog({
+                                open: true,
+                                request,
+                                action: 'reject'
+                              })}
+                            >
+                              <X className="w-4 h-4 mr-1" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        {user?.role === 'super_admin' && (
+                          <>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50"
+                              onClick={() => openEditDialog(request)}
+                            >
+                              <Edit className="w-4 h-4 mr-1" />
+                              Edit
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="text-red-600 border-red-200 hover:bg-red-50"
+                              onClick={() => setActionDialog({
+                                open: true,
+                                request,
+                                action: 'delete'
+                              })}
+                            >
+                              <Trash2 className="w-4 h-4 mr-1" />
+                              Delete
+                            </Button>
+                          </>
+                        )}
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -210,11 +298,17 @@ export const AdminApprovalPanel = () => {
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {actionDialog.action === 'approve' ? 'Approve' : 'Reject'} Registration
+              {actionDialog.action === 'approve' ? 'Approve' : 
+               actionDialog.action === 'reject' ? 'Reject' : 'Delete'} Registration
             </DialogTitle>
             <DialogDescription>
               Are you sure you want to {actionDialog.action} the registration request for{' '}
               <strong>{actionDialog.request?.username}</strong>?
+              {actionDialog.action === 'delete' && (
+                <span className="text-red-600 block mt-2">
+                  This action cannot be undone.
+                </span>
+              )}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
@@ -232,7 +326,53 @@ export const AdminApprovalPanel = () => {
                 }
               }}
             >
-              {actionDialog.action === 'approve' ? 'Approve' : 'Reject'}
+              {actionDialog.action === 'approve' ? 'Approve' : 
+               actionDialog.action === 'reject' ? 'Reject' : 'Delete'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Dialog */}
+      <Dialog open={editDialog.open} onOpenChange={(open) => 
+        setEditDialog(prev => ({ ...prev, open }))
+      }>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Registration Request</DialogTitle>
+            <DialogDescription>
+              Update the registration details for this request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="edit-username">Username</Label>
+              <Input
+                id="edit-username"
+                value={editForm.username}
+                onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
+                placeholder="Enter username"
+              />
+            </div>
+            <div>
+              <Label htmlFor="edit-mobile">Mobile Number</Label>
+              <Input
+                id="edit-mobile"
+                value={editForm.mobile_number}
+                onChange={(e) => setEditForm(prev => ({ ...prev, mobile_number: e.target.value }))}
+                placeholder="Enter mobile number"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setEditDialog({ open: false, request: null })}
+            >
+              Cancel
+            </Button>
+            <Button onClick={handleEdit}>
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
