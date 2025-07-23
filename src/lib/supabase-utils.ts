@@ -1,8 +1,16 @@
-import { supabase } from "@/integrations/supabase/client";
+import { createClient } from '@supabase/supabase-js';
 
-// Utility function to provide typed access to Supabase tables
-// This works around the empty types file issue by using proper typing
-export const typedSupabase = supabase as any;
+const SUPABASE_URL = "https://tlosromklbciqlhruebz.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRsb3Nyb21rbGJjaXFsaHJ1ZWJ6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjYzNTIsImV4cCI6MjA2ODg0MjM1Mn0.cBeyN29cZXX-7zAy6l8NQLbCyo_Zz79ebrJ8dS2Mac8";
+
+// Create a typed supabase client to work around empty types file
+export const typedSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
+  auth: {
+    storage: localStorage,
+    persistSession: true,
+    autoRefreshToken: true,
+  }
+});
 
 // Common table names for type safety
 export const TABLES = {
