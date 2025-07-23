@@ -109,17 +109,17 @@ export type Database = {
           activity_description: string
           agent_id: string
           created_at: string
-          created_by: string
           id: string
+          mobile_number: string
           updated_at: string
         }
         Insert: {
-          activity_date?: string
+          activity_date: string
           activity_description: string
           agent_id: string
           created_at?: string
-          created_by: string
           id?: string
+          mobile_number: string
           updated_at?: string
         }
         Update: {
@@ -127,19 +127,11 @@ export type Database = {
           activity_description?: string
           agent_id?: string
           created_at?: string
-          created_by?: string
           id?: string
+          mobile_number?: string
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "daily_activities_agent_id_fkey"
-            columns: ["agent_id"]
-            isOneToOne: false
-            referencedRelation: "agents"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       management_team_members: {
         Row: {
@@ -201,6 +193,27 @@ export type Database = {
           name?: string
           team_password?: string | null
           updated_at?: string
+        }
+        Relationships: []
+      }
+      panchayath_locations: {
+        Row: {
+          district: string
+          id: string
+          panchayath: string
+          state: string
+        }
+        Insert: {
+          district: string
+          id?: string
+          panchayath: string
+          state: string
+        }
+        Update: {
+          district?: string
+          id?: string
+          panchayath?: string
+          state?: string
         }
         Relationships: []
       }
@@ -355,6 +368,18 @@ export type Database = {
           },
         ]
       }
+      team_leader_id: {
+        Row: {
+          id: string | null
+        }
+        Insert: {
+          id?: string | null
+        }
+        Update: {
+          id?: string | null
+        }
+        Relationships: []
+      }
       team_leader_panchayaths: {
         Row: {
           created_at: string
@@ -469,6 +494,18 @@ export type Database = {
           },
         ]
       }
+      thiruvali_id: {
+        Row: {
+          id: string | null
+        }
+        Insert: {
+          id?: string | null
+        }
+        Update: {
+          id?: string | null
+        }
+        Relationships: []
+      }
       user_profiles: {
         Row: {
           created_at: string
@@ -535,6 +572,7 @@ export type Database = {
     }
     Enums: {
       agent_role: "coordinator" | "supervisor" | "group-leader" | "pro"
+      registration_status: "pending" | "approved" | "rejected"
       task_priority: "high" | "medium" | "normal"
       task_status: "pending" | "completed" | "cancelled"
     }
@@ -665,6 +703,7 @@ export const Constants = {
   public: {
     Enums: {
       agent_role: ["coordinator", "supervisor", "group-leader", "pro"],
+      registration_status: ["pending", "approved", "rejected"],
       task_priority: ["high", "medium", "normal"],
       task_status: ["pending", "completed", "cancelled"],
     },
