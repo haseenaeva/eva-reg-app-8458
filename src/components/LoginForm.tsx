@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/components/AuthProvider";
-import { Eye, EyeOff, LogIn } from "lucide-react";
+import { Eye, EyeOff, LogIn, Home } from "lucide-react";
 
 const LoginForm = () => {
   const [username, setUsername] = useState('');
@@ -28,7 +29,16 @@ const LoginForm = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 flex items-center justify-center p-6">
-      <Card className="w-full max-w-md">
+      <div className="w-full max-w-md">
+        <div className="mb-4">
+          <Link to="/">
+            <Button variant="ghost" size="sm" className="mb-4">
+              <Home className="mr-2 h-4 w-4" />
+              Back to Home
+            </Button>
+          </Link>
+        </div>
+        <Card className="w-full">
         <CardHeader className="text-center">
           <div className="flex justify-center mb-4">
             <LogIn className="h-12 w-12 text-blue-600" />
@@ -86,6 +96,7 @@ const LoginForm = () => {
 
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
