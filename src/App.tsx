@@ -11,6 +11,8 @@ import PanchayathNotes from './pages/PanchayathNotes';
 import NotFound from './pages/NotFound';
 import AdminPanel from './pages/AdminPanel';
 import GuestLogin from './pages/GuestLogin';
+import TeamLoginPage from './pages/TeamLoginPage';
+import TeamDashboard from './pages/TeamDashboard';
 import { AuthProvider } from './components/AuthProvider';
 
 const queryClient = new QueryClient({
@@ -36,6 +38,8 @@ function App() {
               <Route path="/panchayath-notes" element={<PanchayathNotes />} />
               <Route path="/admin-panel" element={<AdminPanel />} />
               <Route path="/guest-login" element={<GuestLogin />} />
+              <Route path="/team-login" element={<TeamLoginPage />} />
+              <Route path="/team-dashboard" element={<TeamDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />

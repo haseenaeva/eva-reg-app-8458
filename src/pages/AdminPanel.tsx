@@ -12,6 +12,7 @@ import LoginForm from "@/components/LoginForm";
 import { AdminApprovalPanel } from "@/components/AdminApprovalPanel";
 import { UserManagement } from "@/components/UserManagement";
 import { AdminPermissionsManager } from "@/components/AdminPermissionsManager";
+import { TeamPasswordManager } from "@/components/TeamPasswordManager";
 
 const AdminPanelContent = () => {
   const { user, logout } = useAuth();
@@ -34,7 +35,9 @@ const AdminPanelContent = () => {
             <div className="flex items-center gap-4">
               <div className="text-right">
                 <p className="text-sm text-gray-600">Welcome back,</p>
-                <p className="font-medium">{user.username} ({user.role.replace('_', ' ')})</p>
+                <p className="font-medium">
+                  {'username' in user ? `${user.username} (${user.role.replace('_', ' ')})` : `${user.teamName} Team`}
+                </p>
               </div>
               <Button variant="outline" onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -52,7 +55,7 @@ const AdminPanelContent = () => {
         <Card>
           <CardContent className="p-6">
             <Tabs defaultValue="teams" className="w-full">
-              <TabsList className="grid w-full grid-cols-5">
+              <TabsList className="grid w-full grid-cols-6">
                 <TabsTrigger value="teams" className="flex items-center gap-2">
                   <Users className="h-4 w-4" />
                   Management Teams
@@ -68,6 +71,10 @@ const AdminPanelContent = () => {
                 <TabsTrigger value="permissions" className="flex items-center gap-2">
                   <Shield className="h-4 w-4" />
                   Permissions
+                </TabsTrigger>
+                <TabsTrigger value="teamauth" className="flex items-center gap-2">
+                  <Users className="h-4 w-4" />
+                  Team Auth
                 </TabsTrigger>
                 <TabsTrigger value="settings" className="flex items-center gap-2">
                   <Settings className="h-4 w-4" />
@@ -99,6 +106,10 @@ const AdminPanelContent = () => {
               
               <TabsContent value="permissions" className="mt-6">
                 <AdminPermissionsManager />
+              </TabsContent>
+              
+              <TabsContent value="teamauth" className="mt-6">
+                <TeamPasswordManager />
               </TabsContent>
               
               <TabsContent value="settings" className="mt-6">

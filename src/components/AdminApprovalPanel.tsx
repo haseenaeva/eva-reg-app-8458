@@ -82,7 +82,7 @@ export const AdminApprovalPanel = () => {
           .from(TABLES.USER_REGISTRATION_REQUESTS)
           .update({
             status: newStatus,
-            approved_by: user?.username || 'admin'
+            approved_by: (user && 'username' in user) ? user.username : 'admin'
           })
           .eq('id', requestId);
 

@@ -9,11 +9,21 @@ interface User {
   role: 'super_admin' | 'local_admin' | 'user_admin';
 }
 
+interface TeamUser {
+  id: string;
+  teamId: string;
+  teamName: string;
+  mobileNumber: string;
+  role: 'team_member';
+}
+
 interface AuthContextType {
-  user: User | null;
+  user: User | TeamUser | null;
   login: (username: string, password: string) => Promise<boolean>;
+  teamLogin: (teamId: string, teamName: string, mobileNumber: string) => void;
   logout: () => void;
   isLoading: boolean;
+  isTeamUser: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -31,15 +41,19 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | TeamUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   useEffect(() => {
     // Check if user is already logged in
     const storedUser = localStorage.getItem('admin_user');
+    const storedTeamUser = localStorage.getItem('team_user');
+    
     if (storedUser) {
       setUser(JSON.parse(storedUser));
+    } else if (storedTeamUser) {
+      setUser(JSON.parse(storedTeamUser));
     }
     setIsLoading(false);
   }, []);
@@ -90,17 +104,33 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  const teamLogin = (teamId: string, teamName: string, mobileNumber: string) => {
+    const teamUser: TeamUser = {
+      id: `${teamId}_${mobileNumber}`,
+      teamId,
+      teamName,
+      mobileNumber,
+      role: 'team_member'
+    };
+    
+    setUser(teamUser);
+    localStorage.setItem('team_user', JSON.stringify(teamUser));
+  };
+
   const logout = () => {
     setUser(null);
     localStorage.removeItem('admin_user');
+    localStorage.removeItem('team_user');
     toast({
       title: "Success",
       description: "Logged out successfully",
     });
   };
 
+  const isTeamUser = user?.role === 'team_member';
+
   return (
-    <AuthContext.Provider value={{ user, login, logout, isLoading }}>
+    <AuthContext.Provider value={{ user, login, teamLogin, logout, isLoading, isTeamUser }}>
       {children}
     </AuthContext.Provider>
   );
