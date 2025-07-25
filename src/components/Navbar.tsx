@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from "@/components/ui/button";
-import { Settings, UserPlus, Users } from "lucide-react";
+import { UserPlus, Users } from "lucide-react";
 
 export const Navbar = () => {
   const location = useLocation();
@@ -15,16 +15,6 @@ export const Navbar = () => {
           </Link>
           
           <div className="flex items-center gap-4">
-            <Link to="/admin-panel">
-              <Button 
-                variant={location.pathname === '/admin-panel' ? 'default' : 'ghost'}
-                className="flex items-center gap-2"
-              >
-                <Settings className="h-4 w-4" />
-                Admin Panel
-              </Button>
-            </Link>
-            
             <Link to="/team-login">
               <Button 
                 variant={location.pathname === '/team-login' ? 'default' : 'ghost'}

@@ -9,7 +9,7 @@ import ViewHierarchy from './pages/ViewHierarchy';
 import TaskManagement from './pages/TaskManagement';
 import PanchayathNotes from './pages/PanchayathNotes';
 import NotFound from './pages/NotFound';
-import AdminPanel from './pages/AdminPanel';
+
 import GuestLogin from './pages/GuestLogin';
 import TeamLoginPage from './pages/TeamLoginPage';
 import TeamDashboard from './pages/TeamDashboard';
@@ -36,7 +36,7 @@ function App() {
               <Route path="/view-hierarchy" element={<ViewHierarchy />} />
               <Route path="/task-management" element={<TaskManagement />} />
               <Route path="/panchayath-notes" element={<PanchayathNotes />} />
-              <Route path="/admin-panel" element={<AdminPanel />} />
+              
               <Route path="/guest-login" element={<GuestLogin />} />
               <Route path="/team-login" element={<TeamLoginPage />} />
               <Route path="/team-dashboard" element={<TeamDashboard />} />
