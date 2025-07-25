@@ -14,6 +14,7 @@ import GuestLogin from './pages/GuestLogin';
 import TeamLoginPage from './pages/TeamLoginPage';
 import TeamDashboard from './pages/TeamDashboard';
 import { AuthProvider } from './components/AuthProvider';
+import AdminPanel from './pages/AdminPanel';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -36,7 +37,7 @@ function App() {
               <Route path="/view-hierarchy" element={<ViewHierarchy />} />
               <Route path="/task-management" element={<TaskManagement />} />
               <Route path="/panchayath-notes" element={<PanchayathNotes />} />
-              
+              <Route path="/admin/*" element={<AdminPanel />} />
               <Route path="/guest-login" element={<GuestLogin />} />
               <Route path="/team-login" element={<TeamLoginPage />} />
               <Route path="/team-dashboard" element={<TeamDashboard />} />
