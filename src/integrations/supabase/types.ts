@@ -527,45 +527,6 @@ export type Database = {
           },
         ]
       }
-      thiruvali_id: {
-        Row: {
-          id: string | null
-        }
-        Insert: {
-          id?: string | null
-        }
-        Update: {
-          id?: string | null
-        }
-        Relationships: []
-      }
-      user_profiles: {
-        Row: {
-          created_at: string
-          id: string
-          password_hash: string
-          role: string
-          updated_at: string
-          username: string
-        }
-        Insert: {
-          created_at?: string
-          id?: string
-          password_hash: string
-          role: string
-          updated_at?: string
-          username: string
-        }
-        Update: {
-          created_at?: string
-          id?: string
-          password_hash?: string
-          role?: string
-          updated_at?: string
-          username?: string
-        }
-        Relationships: []
-      }
       user_registration_requests: {
         Row: {
           approved_by: string | null
