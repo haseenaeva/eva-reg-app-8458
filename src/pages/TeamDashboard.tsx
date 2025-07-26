@@ -25,6 +25,7 @@ const TeamDashboard = () => {
   }
 
   const teamUser = user as any; // Type assertion since we know it's a team user
+  const isGuest = user.role === 'guest';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-green-50 to-blue-100 p-6">
@@ -39,9 +40,12 @@ const TeamDashboard = () => {
             </Link>
             <div className="flex items-center gap-4">
               <div className="text-right">
-                <p className="text-sm text-gray-600">Welcome to team,</p>
-                <p className="font-medium">{teamUser.teamName}</p>
+                <p className="text-sm text-gray-600">Welcome,</p>
+                <p className="font-medium">{isGuest ? teamUser.username : teamUser.teamName}</p>
                 <p className="text-sm text-gray-500">Mobile: {teamUser.mobileNumber}</p>
+                {isGuest && teamUser.panchayath && (
+                  <p className="text-sm text-gray-500">{teamUser.panchayath.name}, {teamUser.panchayath.district}</p>
+                )}
               </div>
               <Button variant="outline" onClick={logout}>
                 <LogOut className="mr-2 h-4 w-4" />
@@ -51,15 +55,15 @@ const TeamDashboard = () => {
           </div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2 flex items-center gap-3">
             <Users className="h-8 w-8 text-green-600" />
-            Team Dashboard - {teamUser.teamName}
+            {isGuest ? `Guest Dashboard - ${teamUser.username}` : `Team Dashboard - ${teamUser.teamName}`}
           </h1>
           <p className="text-gray-600">View your team and individual task notifications</p>
         </div>
 
         <div className="grid gap-6">
           <TeamNotifications 
-            teamId={teamUser.teamId}
-            teamName={teamUser.teamName}
+            teamId={isGuest ? 'guest' : teamUser.teamId}
+            teamName={isGuest ? teamUser.username : teamUser.teamName}
             mobileNumber={teamUser.mobileNumber}
           />
           
@@ -73,8 +77,8 @@ const TeamDashboard = () => {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <h3 className="font-medium text-gray-900">Team Name</h3>
-                  <p className="text-gray-600">{teamUser.teamName}</p>
+                  <h3 className="font-medium text-gray-900">{isGuest ? 'Username' : 'Team Name'}</h3>
+                  <p className="text-gray-600">{isGuest ? teamUser.username : teamUser.teamName}</p>
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Registered Mobile</h3>
@@ -82,7 +86,7 @@ const TeamDashboard = () => {
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Access Level</h3>
-                  <p className="text-gray-600">Team Member</p>
+                  <p className="text-gray-600">{isGuest ? 'Guest User' : 'Team Member'}</p>
                 </div>
                 <div>
                   <h3 className="font-medium text-gray-900">Login Time</h3>

@@ -46,12 +46,11 @@ const TeamManagement = () => {
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
   const [selectedTeamForMembers, setSelectedTeamForMembers] = useState<string>('');
   const [selectedAgent, setSelectedAgent] = useState<string>('');
+  const [searchAgent, setSearchAgent] = useState('');
+  const [selectedTeam, setSelectedTeam] = useState('');
   const [manualMemberData, setManualMemberData] = useState({
     name: '',
     phone: '',
-    email: '',
-    role: 'coordinator' as 'coordinator' | 'supervisor' | 'group-leader' | 'pro',
-    panchayath_id: '',
   });
   const [formData, setFormData] = useState({
     name: '',
@@ -255,9 +254,8 @@ const TeamManagement = () => {
           .insert({
             name: manualMemberData.name,
             phone: manualMemberData.phone,
-            email: manualMemberData.email,
-            role: manualMemberData.role,
-            panchayath_id: manualMemberData.panchayath_id || '',
+            role: 'coordinator',
+            panchayath_id: '6480aff6-d501-4a8e-8d5e-01f573f3e966', // Default panchayath
           })
           .select()
           .single();
@@ -276,10 +274,11 @@ const TeamManagement = () => {
       }
 
       // Add member to team
+      const teamId = selectedTeam || selectedTeamForMembers;
       const { error } = await supabase
         .from('management_team_members')
         .insert([{
-          team_id: selectedTeamForMembers,
+          team_id: teamId,
           agent_id: agentId,
         }]);
 
@@ -292,12 +291,11 @@ const TeamManagement = () => {
 
       setIsMemberDialogOpen(false);
       setSelectedAgent('');
+      setSearchAgent('');
+      setSelectedTeam('');
       setManualMemberData({
         name: '',
         phone: '',
-        email: '',
-        role: 'coordinator',
-        panchayath_id: '',
       });
     } catch (error) {
       console.error('Error adding member:', error);
@@ -523,15 +521,45 @@ const TeamManagement = () => {
           
           <form onSubmit={handleMemberSubmit} className="space-y-4">
             <div className="space-y-2">
+              <Label htmlFor="search-agent">Search Agent</Label>
+              <Input
+                id="search-agent"
+                value={searchAgent}
+                onChange={(e) => setSearchAgent(e.target.value)}
+                placeholder="Search agents by name..."
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label htmlFor="existing-agent">Select Existing Agent</Label>
-              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+              <div className="max-h-32 overflow-y-auto border rounded-md">
+                <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Choose an agent" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {agents
+                      .filter(agent => agent.name.toLowerCase().includes(searchAgent.toLowerCase()))
+                      .map((agent) => (
+                      <SelectItem key={agent.id} value={agent.id}>
+                        {agent.name} - {agent.role} ({agent.phone})
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="team-select">Select Team (Optional)</Label>
+              <Select value={selectedTeam} onValueChange={setSelectedTeam}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose an agent" />
+                  <SelectValue placeholder="Choose a team" />
                 </SelectTrigger>
                 <SelectContent>
-                  {agents.map((agent) => (
-                    <SelectItem key={agent.id} value={agent.id}>
-                      {agent.name} - {agent.role} ({agent.phone})
+                  {teams.map((team) => (
+                    <SelectItem key={team.id} value={team.id}>
+                      {team.name}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -565,31 +593,6 @@ const TeamManagement = () => {
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="manual-email">Email</Label>
-                <Input
-                  id="manual-email"
-                  type="email"
-                  value={manualMemberData.email}
-                  onChange={(e) => setManualMemberData({ ...manualMemberData, email: e.target.value })}
-                  placeholder="Enter email address"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="manual-role">Role</Label>
-                <Select value={manualMemberData.role} onValueChange={(value: 'coordinator' | 'supervisor' | 'group-leader' | 'pro') => setManualMemberData({ ...manualMemberData, role: value })}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="coordinator">Coordinator</SelectItem>
-                    <SelectItem value="supervisor">Supervisor</SelectItem>
-                    <SelectItem value="group-leader">Group Leader</SelectItem>
-                    <SelectItem value="pro">PRO</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
 
             <div className="flex justify-end space-x-2">

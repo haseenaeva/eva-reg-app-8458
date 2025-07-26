@@ -17,8 +17,17 @@ interface TeamUser {
   role: 'team_member';
 }
 
+interface GuestUser {
+  id: string;
+  username: string;
+  mobileNumber: string;
+  panchayath_id: string;
+  panchayath: any;
+  role: 'guest';
+}
+
 interface AuthContextType {
-  user: User | TeamUser | null;
+  user: User | TeamUser | GuestUser | null;
   login: (username: string, password: string) => Promise<boolean>;
   teamLogin: (teamId: string, teamName: string, mobileNumber: string) => void;
   logout: () => void;
@@ -41,7 +50,7 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<User | TeamUser | null>(null);
+  const [user, setUser] = useState<User | TeamUser | GuestUser | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
@@ -49,11 +58,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // Check if user is already logged in
     const storedUser = localStorage.getItem('admin_user');
     const storedTeamUser = localStorage.getItem('team_user');
+    const storedGuestUser = localStorage.getItem('guest_user');
     
     if (storedUser) {
       setUser(JSON.parse(storedUser));
     } else if (storedTeamUser) {
       setUser(JSON.parse(storedTeamUser));
+    } else if (storedGuestUser) {
+      setUser(JSON.parse(storedGuestUser));
     }
     setIsLoading(false);
   }, []);
@@ -121,13 +133,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     setUser(null);
     localStorage.removeItem('admin_user');
     localStorage.removeItem('team_user');
+    localStorage.removeItem('guest_user');
     toast({
       title: "Success",
       description: "Logged out successfully",
     });
   };
 
-  const isTeamUser = user?.role === 'team_member';
+  const isTeamUser = user?.role === 'team_member' || user?.role === 'guest';
 
   return (
     <AuthContext.Provider value={{ user, login, teamLogin, logout, isLoading, isTeamUser }}>
