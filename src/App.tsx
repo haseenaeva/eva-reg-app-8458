@@ -13,6 +13,7 @@ import NotFound from './pages/NotFound';
 import GuestLogin from './pages/GuestLogin';
 import TeamLoginPage from './pages/TeamLoginPage';
 import TeamDashboard from './pages/TeamDashboard';
+import PersonalDashboard from './pages/PersonalDashboard';
 import { AuthProvider } from './components/AuthProvider';
 import AdminPanel from './pages/AdminPanel';
 
@@ -41,6 +42,7 @@ function App() {
               <Route path="/guest-login" element={<GuestLogin />} />
               <Route path="/team-login" element={<TeamLoginPage />} />
               <Route path="/team-dashboard" element={<TeamDashboard />} />
+              <Route path="/personal-dashboard" element={<PersonalDashboard />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
             <Toaster />

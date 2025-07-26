@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { ArrowLeft, LogIn, UserPlus, Phone, User, AlertCircle, CheckCircle } from "lucide-react";
+import { ArrowLeft, LogIn, UserPlus, Phone, User, AlertCircle, CheckCircle, Users } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import { GuestRegistrationForm } from "@/components/GuestRegistrationForm";
 import { GuestTaskPopup } from "@/components/GuestTaskPopup";
@@ -20,6 +20,11 @@ export default function GuestLogin() {
   const [loginStatus, setLoginStatus] = useState<'idle' | 'success' | 'pending' | 'rejected'>('idle');
   const [showTaskPopup, setShowTaskPopup] = useState(false);
   const [loggedInMobile, setLoggedInMobile] = useState("");
+  const [showDashboardChoice, setShowDashboardChoice] = useState(false);
+  const [userTeams, setUserTeams] = useState([]);
+  const [teamPassword, setTeamPassword] = useState('');
+  const [selectedTeam, setSelectedTeam] = useState(null);
+  const [loggedInUser, setLoggedInUser] = useState(null);
   const {
     toast
   } = useToast();
@@ -47,26 +52,37 @@ export default function GuestLogin() {
         return;
       }
       if (data.status === 'approved') {
-        setLoginStatus('success');
-        // Store user session
-        localStorage.setItem('guest_user', JSON.stringify({
+        const userData = {
           id: data.id,
           username: data.username,
           mobileNumber: data.mobile_number,
           panchayath_id: data.panchayath_id,
           panchayath: data.panchayaths,
           role: 'guest'
-        }));
+        };
+        
+        setLoggedInUser(userData);
+        
+        // Check if user is part of any management teams
+        const { data: teamData, error: teamError } = await typedSupabase
+          .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
+          .select(`
+            *, 
+            management_teams(*)
+          `)
+          .eq('agent_id', data.id);
 
-        toast({
-          title: "Success",
-          description: "Login successful! Redirecting to dashboard..."
-        });
-
-        // Redirect to dashboard after brief delay
-        setTimeout(() => {
-          navigate('/team-dashboard');
-        }, 1000);
+        if (!teamError && teamData && teamData.length > 0) {
+          setUserTeams(teamData);
+          setShowDashboardChoice(true);
+        } else {
+          // No teams found, go directly to personal dashboard
+          localStorage.setItem('guest_user', JSON.stringify(userData));
+          setLoginStatus('success');
+          setTimeout(() => {
+            navigate('/personal-dashboard');
+          }, 1000);
+        }
       } else if (data.status === 'pending') {
         setLoginStatus('pending');
       } else if (data.status === 'rejected') {
@@ -83,6 +99,133 @@ export default function GuestLogin() {
       setIsLoggingIn(false);
     }
   };
+
+  const handlePersonalDashboard = () => {
+    localStorage.setItem('guest_user', JSON.stringify(loggedInUser));
+    setLoginStatus('success');
+    setTimeout(() => {
+      navigate('/personal-dashboard');
+    }, 500);
+  };
+
+  const handleTeamDashboard = async (team) => {
+    setSelectedTeam(team);
+  };
+
+  const handleTeamPasswordSubmit = async () => {
+    if (!selectedTeam || !teamPassword) {
+      toast({
+        title: "Error",
+        description: "Please enter the team password",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    try {
+      // Verify team password
+      const { data: teamData, error } = await typedSupabase
+        .from(TABLES.MANAGEMENT_TEAMS)
+        .select('*')
+        .eq('id', selectedTeam.team_id)
+        .eq('team_password', teamPassword)
+        .single();
+
+      if (error || !teamData) {
+        toast({
+          title: "Error",
+          description: "Invalid team password",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Store team user session
+      localStorage.setItem('team_user', JSON.stringify({
+        id: `${selectedTeam.team_id}_${loggedInUser.mobileNumber}`,
+        teamId: selectedTeam.team_id,
+        teamName: selectedTeam.management_teams.name,
+        mobileNumber: loggedInUser.mobileNumber,
+        role: 'team_member'
+      }));
+
+      setLoginStatus('success');
+      setTimeout(() => {
+        navigate('/team-dashboard');
+      }, 500);
+    } catch (error) {
+      console.error('Team login error:', error);
+      toast({
+        title: "Error",
+        description: "Failed to verify team credentials",
+        variant: "destructive"
+      });
+    }
+  };
+  if (showDashboardChoice) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+        <Card className="w-full max-w-md mx-auto">
+          <CardHeader className="text-center">
+            <CardTitle>Choose Dashboard</CardTitle>
+            <CardDescription>
+              Select which dashboard you want to access
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {selectedTeam ? (
+              <div className="space-y-4">
+                <h3 className="font-medium">Enter Team Password for {selectedTeam.management_teams.name}</h3>
+                <Input
+                  type="password"
+                  placeholder="Team Password"
+                  value={teamPassword}
+                  onChange={(e) => setTeamPassword(e.target.value)}
+                />
+                <div className="flex gap-2">
+                  <Button onClick={handleTeamPasswordSubmit} className="flex-1">
+                    Access Team Dashboard
+                  </Button>
+                  <Button variant="outline" onClick={() => setSelectedTeam(null)}>
+                    Back
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                <Button 
+                  onClick={handlePersonalDashboard}
+                  className="w-full"
+                  variant="outline"
+                >
+                  <User className="mr-2 h-4 w-4" />
+                  Personal Dashboard
+                </Button>
+                
+                {userTeams.length > 0 && (
+                  <div className="space-y-2">
+                    <p className="text-sm text-gray-600">Or access team dashboard:</p>
+                    {userTeams.map((teamMember) => (
+                      <Button 
+                        key={teamMember.id}
+                        onClick={() => handleTeamDashboard(teamMember)}
+                        className="w-full"
+                        variant="default"
+                      >
+                        <Users className="mr-2 h-4 w-4" />
+                        {teamMember.management_teams.name}
+                      </Button>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (loginStatus === 'success') {
     return <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
         <Card className="w-full max-w-md mx-auto">

@@ -3,9 +3,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { UserCheck, Clock, CheckCircle, XCircle } from "lucide-react";
+import { UserCheck, Clock, CheckCircle, XCircle, Edit, Trash2, ArrowLeft } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Link } from "react-router-dom";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
 interface RegistrationRequest {
   id: string;
@@ -19,6 +23,10 @@ interface RegistrationRequest {
 const UserApprovals = () => {
   const [requests, setRequests] = useState<RegistrationRequest[]>([]);
   const [loading, setLoading] = useState(true);
+  const [editingRequest, setEditingRequest] = useState<RegistrationRequest | null>(null);
+  const [editForm, setEditForm] = useState({ username: '', mobile_number: '' });
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [requestToDelete, setRequestToDelete] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -93,6 +101,71 @@ const UserApprovals = () => {
     }
   };
 
+  const handleEdit = (request: RegistrationRequest) => {
+    setEditingRequest(request);
+    setEditForm({
+      username: request.username,
+      mobile_number: request.mobile_number
+    });
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingRequest) return;
+    
+    try {
+      const { error } = await supabase
+        .from('user_registration_requests')
+        .update({
+          username: editForm.username,
+          mobile_number: editForm.mobile_number,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', editingRequest.id);
+
+      if (error) throw error;
+      
+      setEditingRequest(null);
+      toast({
+        title: "Success",
+        description: "Request updated successfully",
+      });
+    } catch (error) {
+      console.error('Error updating request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update request",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!requestToDelete) return;
+    
+    try {
+      const { error } = await supabase
+        .from('user_registration_requests')
+        .delete()
+        .eq('id', requestToDelete);
+
+      if (error) throw error;
+      
+      setDeleteDialogOpen(false);
+      setRequestToDelete(null);
+      toast({
+        title: "Success",
+        description: "Request deleted successfully",
+      });
+    } catch (error) {
+      console.error('Error deleting request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete request",
+        variant: "destructive",
+      });
+    }
+  };
+
   const getStatusBadge = (status: string) => {
     switch (status) {
       case 'pending':
@@ -123,6 +196,15 @@ const UserApprovals = () => {
 
   return (
     <div className="p-6">
+      <div className="mb-4">
+        <Link to="/">
+          <Button variant="ghost" size="sm">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Back to Home
+          </Button>
+        </Link>
+      </div>
+      
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
@@ -161,26 +243,47 @@ const UserApprovals = () => {
                       {new Date(request.created_at).toLocaleDateString()}
                     </TableCell>
                     <TableCell>
-                      {request.status === 'pending' && (
-                        <div className="flex gap-2">
-                          <Button
-                            size="sm"
-                            onClick={() => handleAction(request.id, 'approved')}
-                            className="bg-green-600 hover:bg-green-700"
-                          >
-                            <CheckCircle className="h-4 w-4 mr-1" />
-                            Approve
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="destructive"
-                            onClick={() => handleAction(request.id, 'rejected')}
-                          >
-                            <XCircle className="h-4 w-4 mr-1" />
-                            Reject
-                          </Button>
-                        </div>
-                      )}
+                      <div className="flex gap-2">
+                        {request.status === 'pending' && (
+                          <>
+                            <Button
+                              size="sm"
+                              onClick={() => handleAction(request.id, 'approved')}
+                              className="bg-green-600 hover:bg-green-700"
+                            >
+                              <CheckCircle className="h-4 w-4 mr-1" />
+                              Approve
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="destructive"
+                              onClick={() => handleAction(request.id, 'rejected')}
+                            >
+                              <XCircle className="h-4 w-4 mr-1" />
+                              Reject
+                            </Button>
+                          </>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleEdit(request)}
+                        >
+                          <Edit className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => {
+                            setRequestToDelete(request.id);
+                            setDeleteDialogOpen(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4 mr-1" />
+                          Delete
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -189,6 +292,68 @@ const UserApprovals = () => {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={!!editingRequest} onOpenChange={() => setEditingRequest(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Registration Request</DialogTitle>
+            <DialogDescription>
+              Update the username and mobile number for this registration request.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="username" className="text-right">
+                Username
+              </Label>
+              <Input
+                id="username"
+                value={editForm.username}
+                onChange={(e) => setEditForm(prev => ({ ...prev, username: e.target.value }))}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="mobile" className="text-right">
+                Mobile Number
+              </Label>
+              <Input
+                id="mobile"
+                value={editForm.mobile_number}
+                onChange={(e) => setEditForm(prev => ({ ...prev, mobile_number: e.target.value }))}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditingRequest(null)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit}>Save changes</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm Delete</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this registration request? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

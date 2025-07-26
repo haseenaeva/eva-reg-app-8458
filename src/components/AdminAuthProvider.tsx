@@ -97,10 +97,20 @@ export const AdminAuthProvider: React.FC<{ children: React.ReactNode }> = ({ chi
   const logout = () => {
     setAdminUser(null);
     localStorage.removeItem('adminUser');
+    localStorage.removeItem('admin_user');
+    localStorage.removeItem('team_user');
+    localStorage.removeItem('guest_user');
+    
+    // Clear all session storage
+    sessionStorage.clear();
+    
     toast({
       title: "Logged Out",
       description: "You have been logged out successfully",
     });
+    
+    // Force page reload to clear all app state
+    window.location.href = '/';
   };
 
   return (

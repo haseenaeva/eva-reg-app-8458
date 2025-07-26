@@ -2,7 +2,8 @@ import React from 'react';
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Button } from "@/components/ui/button";
-import { LogOut, Shield } from "lucide-react";
+import { LogOut, Shield, Home } from "lucide-react";
+import { Link } from "react-router-dom";
 import { AdminSidebar } from "@/components/AdminSidebar";
 import { AdminAuthProvider, useAdminAuth } from "@/components/AdminAuthProvider";
 import AdminLogin from "@/components/AdminLogin";
@@ -49,15 +50,28 @@ const AdminPanelContent = () => {
                 </span>
               </div>
               
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={logout}
-                className="flex items-center gap-2"
-              >
-                <LogOut className="h-4 w-4" />
-                Logout
-              </Button>
+              <div className="flex items-center gap-2">
+                <Link to="/">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center gap-2"
+                  >
+                    <Home className="h-4 w-4" />
+                    Home
+                  </Button>
+                </Link>
+                
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={logout}
+                  className="flex items-center gap-2"
+                >
+                  <LogOut className="h-4 w-4" />
+                  Logout
+                </Button>
+              </div>
             </div>
           </header>
 

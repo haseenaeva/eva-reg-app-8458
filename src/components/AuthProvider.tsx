@@ -134,10 +134,18 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     localStorage.removeItem('admin_user');
     localStorage.removeItem('team_user');
     localStorage.removeItem('guest_user');
+    localStorage.removeItem('adminUser'); // Clear admin auth provider too
+    
+    // Clear all session storage
+    sessionStorage.clear();
+    
     toast({
       title: "Success",
       description: "Logged out successfully",
     });
+    
+    // Force page reload to clear all app state
+    window.location.href = '/';
   };
 
   const isTeamUser = user?.role === 'team_member' || user?.role === 'guest';

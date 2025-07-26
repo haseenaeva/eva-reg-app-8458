@@ -1,7 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 
-const SUPABASE_URL = "https://gzbvyvzsuscexdhtioxe.supabase.co";
-const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imd6YnZ5dnpzdXNjZXhkaHRpb3hlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTMyNjA5NDMsImV4cCI6MjA2ODgzNjk0M30.GSI4jvExn2nfzh1ZxoTYcGneunc3Ed-4gkvzXVq6W8Y";
+const SUPABASE_URL = "https://zpguewuodjfefiwnmosf.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InpwZ3Vld3VvZGpmZWZpd25tb3NmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM0Mzg4ODYsImV4cCI6MjA2OTAxNDg4Nn0.plM485sUjNQ7SoAkpyC-w7esoY42tiDVR21knh3hekw";
 
 // Create a typed supabase client to work around empty types file
 export const typedSupabase = createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
