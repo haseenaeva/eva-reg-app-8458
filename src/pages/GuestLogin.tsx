@@ -58,13 +58,15 @@ export default function GuestLogin() {
           role: 'guest'
         }));
 
-        // Show task popup and set mobile number
-        setLoggedInMobile(data.mobile_number);
-        setShowTaskPopup(true);
         toast({
           title: "Success",
-          description: "Login successful!"
+          description: "Login successful! Redirecting to dashboard..."
         });
+
+        // Redirect to dashboard after brief delay
+        setTimeout(() => {
+          navigate('/team-dashboard');
+        }, 1000);
       } else if (data.status === 'pending') {
         setLoginStatus('pending');
       } else if (data.status === 'rejected') {
@@ -179,9 +181,5 @@ export default function GuestLogin() {
         </Tabs>
       </div>
 
-      <GuestTaskPopup isOpen={showTaskPopup} onClose={() => {
-      setShowTaskPopup(false);
-      navigate('/');
-    }} mobileNumber={loggedInMobile} />
     </div>;
 }

@@ -7,11 +7,11 @@ export const Navbar = () => {
   const location = useLocation();
   
   return (
-    <nav className="bg-white shadow-md border-b">
+    <nav className="bg-white shadow-md border-b sticky top-0 z-50">
       <div className="max-w-6xl mx-auto px-6 py-4">
         <div className="flex items-center justify-between">
-          <Link to="/" className="text-xl font-bold text-gray-900">
-            Panchayath Management System
+          <Link to="/" className="text-xl font-bold text-gray-900 hover:text-gray-700">
+            🏛️ Panchayath Management System
           </Link>
           
           <div className="flex items-center gap-4">

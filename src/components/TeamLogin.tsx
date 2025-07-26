@@ -86,8 +86,8 @@ export const TeamLogin = ({ onTeamLogin }: TeamLoginProps) => {
         throw new Error('Team not found');
       }
 
-      // Verify password
-      if (team.team_password !== password) {
+      // Verify team password
+      if (!team.team_password || team.team_password !== password) {
         toast({
           title: "Error",
           description: "Invalid team password",

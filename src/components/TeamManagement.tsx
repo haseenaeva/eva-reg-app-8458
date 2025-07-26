@@ -6,7 +6,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Building2, Plus, Users, Edit, Trash2 } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Building2, Plus, Users, Edit, Trash2, UserPlus } from "lucide-react";
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -19,11 +20,39 @@ interface Team {
   created_at: string;
 }
 
+interface Agent {
+  id: string;
+  name: string;
+  phone?: string;
+  email?: string;
+  role: 'coordinator' | 'supervisor' | 'group-leader' | 'pro';
+  panchayath_id: string;
+}
+
+interface TeamMember {
+  id: string;
+  team_id: string;
+  agent_id: string;
+  agents?: Agent;
+}
+
 const TeamManagement = () => {
   const [teams, setTeams] = useState<Team[]>([]);
+  const [agents, setAgents] = useState<Agent[]>([]);
+  const [teamMembers, setTeamMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isMemberDialogOpen, setIsMemberDialogOpen] = useState(false);
   const [editingTeam, setEditingTeam] = useState<Team | null>(null);
+  const [selectedTeamForMembers, setSelectedTeamForMembers] = useState<string>('');
+  const [selectedAgent, setSelectedAgent] = useState<string>('');
+  const [manualMemberData, setManualMemberData] = useState({
+    name: '',
+    phone: '',
+    email: '',
+    role: 'coordinator' as 'coordinator' | 'supervisor' | 'group-leader' | 'pro',
+    panchayath_id: '',
+  });
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -33,7 +62,7 @@ const TeamManagement = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchTeams();
+    fetchData();
     
     // Real-time subscription
     const channel = supabase
@@ -46,7 +75,18 @@ const TeamManagement = () => {
           table: 'management_teams'
         },
         () => {
-          fetchTeams();
+          fetchData();
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'management_team_members'
+        },
+        () => {
+          fetchData();
         }
       )
       .subscribe();
@@ -56,20 +96,41 @@ const TeamManagement = () => {
     };
   }, []);
 
-  const fetchTeams = async () => {
+  const fetchData = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch teams
+      const { data: teamsData, error: teamsError } = await supabase
         .from('management_teams')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setTeams(data || []);
+      if (teamsError) throw teamsError;
+      setTeams(teamsData || []);
+
+      // Fetch agents
+      const { data: agentsData, error: agentsError } = await supabase
+        .from('agents')
+        .select('*')
+        .order('name');
+
+      if (agentsError) throw agentsError;
+      setAgents(agentsData || []);
+
+      // Fetch team members
+      const { data: membersData, error: membersError } = await supabase
+        .from('management_team_members')
+        .select(`
+          *,
+          agents(id, name, phone, email, role, panchayath_id)
+        `);
+
+      if (membersError) throw membersError;
+      setTeamMembers(membersData || []);
     } catch (error) {
-      console.error('Error fetching teams:', error);
+      console.error('Error fetching data:', error);
       toast({
         title: "Error",
-        description: "Failed to fetch teams",
+        description: "Failed to fetch data",
         variant: "destructive",
       });
     } finally {
@@ -176,6 +237,107 @@ const TeamManagement = () => {
     setIsDialogOpen(true);
   };
 
+  const handleAddMember = async (teamId: string) => {
+    setSelectedTeamForMembers(teamId);
+    setIsMemberDialogOpen(true);
+  };
+
+  const handleMemberSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      let agentId = selectedAgent;
+      
+      // If no agent selected, create a manual member
+      if (!selectedAgent && manualMemberData.name) {
+        const { data: newAgent, error: agentError } = await supabase
+          .from('agents')
+          .insert({
+            name: manualMemberData.name,
+            phone: manualMemberData.phone,
+            email: manualMemberData.email,
+            role: manualMemberData.role,
+            panchayath_id: manualMemberData.panchayath_id || '',
+          })
+          .select()
+          .single();
+
+        if (agentError) throw agentError;
+        agentId = newAgent.id;
+      }
+
+      if (!agentId) {
+        toast({
+          title: "Error",
+          description: "Please select an agent or provide manual details",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // Add member to team
+      const { error } = await supabase
+        .from('management_team_members')
+        .insert([{
+          team_id: selectedTeamForMembers,
+          agent_id: agentId,
+        }]);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Team member added successfully",
+      });
+
+      setIsMemberDialogOpen(false);
+      setSelectedAgent('');
+      setManualMemberData({
+        name: '',
+        phone: '',
+        email: '',
+        role: 'coordinator',
+        panchayath_id: '',
+      });
+    } catch (error) {
+      console.error('Error adding member:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add team member",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleRemoveMember = async (memberId: string) => {
+    if (!confirm('Are you sure you want to remove this team member?')) return;
+
+    try {
+      const { error } = await supabase
+        .from('management_team_members')
+        .delete()
+        .eq('id', memberId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Success",
+        description: "Team member removed successfully",
+      });
+    } catch (error) {
+      console.error('Error removing member:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove team member",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getTeamMembers = (teamId: string) => {
+    return teamMembers.filter(member => member.team_id === teamId);
+  };
+
   return (
     <div className="p-6">
       <Card className="mb-6">
@@ -230,15 +392,45 @@ const TeamManagement = () => {
                   </div>
                 </div>
                 
+                <div className="mb-4">
+                  <div className="text-sm font-medium mb-2">Team Members:</div>
+                  {getTeamMembers(team.id).length > 0 ? (
+                    <div className="space-y-1">
+                      {getTeamMembers(team.id).map((member) => (
+                        <div key={member.id} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+                          <span>{member.agents?.name || 'Unknown'}</span>
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleRemoveMember(member.id)}
+                            className="h-6 w-6 p-0 text-red-600 hover:text-red-800"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500">No members added</div>
+                  )}
+                </div>
+                
                 <div className="flex gap-2 mt-4">
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleEdit(team)}
+                    onClick={() => handleAddMember(team.id)}
                     className="flex-1"
                   >
-                    <Edit className="h-4 w-4 mr-1" />
-                    Edit
+                    <UserPlus className="h-4 w-4 mr-1" />
+                    Add Member
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleEdit(team)}
+                  >
+                    <Edit className="h-4 w-4" />
                   </Button>
                   <Button
                     size="sm"
@@ -314,6 +506,98 @@ const TeamManagement = () => {
               </Button>
               <Button type="submit">
                 {editingTeam ? 'Update' : 'Create'} Team
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={isMemberDialogOpen} onOpenChange={setIsMemberDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Team Member</DialogTitle>
+            <DialogDescription>
+              Select an existing agent or add a new member manually
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={handleMemberSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="existing-agent">Select Existing Agent</Label>
+              <Select value={selectedAgent} onValueChange={setSelectedAgent}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose an agent" />
+                </SelectTrigger>
+                <SelectContent>
+                  {agents.map((agent) => (
+                    <SelectItem key={agent.id} value={agent.id}>
+                      {agent.name} - {agent.role} ({agent.phone})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="text-center text-sm text-gray-500 my-4">
+              OR
+            </div>
+
+            <div className="space-y-4 border-t pt-4">
+              <div className="text-sm font-medium">Add New Member Manually</div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="manual-name">Name</Label>
+                <Input
+                  id="manual-name"
+                  value={manualMemberData.name}
+                  onChange={(e) => setManualMemberData({ ...manualMemberData, name: e.target.value })}
+                  placeholder="Enter member name"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manual-phone">Phone</Label>
+                <Input
+                  id="manual-phone"
+                  value={manualMemberData.phone}
+                  onChange={(e) => setManualMemberData({ ...manualMemberData, phone: e.target.value })}
+                  placeholder="Enter phone number"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manual-email">Email</Label>
+                <Input
+                  id="manual-email"
+                  type="email"
+                  value={manualMemberData.email}
+                  onChange={(e) => setManualMemberData({ ...manualMemberData, email: e.target.value })}
+                  placeholder="Enter email address"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="manual-role">Role</Label>
+                <Select value={manualMemberData.role} onValueChange={(value: 'coordinator' | 'supervisor' | 'group-leader' | 'pro') => setManualMemberData({ ...manualMemberData, role: value })}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="coordinator">Coordinator</SelectItem>
+                    <SelectItem value="supervisor">Supervisor</SelectItem>
+                    <SelectItem value="group-leader">Group Leader</SelectItem>
+                    <SelectItem value="pro">PRO</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={() => setIsMemberDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit">
+                Add Member
               </Button>
             </div>
           </form>
