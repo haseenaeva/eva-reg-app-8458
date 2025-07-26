@@ -63,16 +63,29 @@ export default function GuestLogin() {
         
         setLoggedInUser(userData);
         
-        // Check if user is part of any management teams
-        const { data: teamData, error: teamError } = await typedSupabase
-          .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
-          .select(`
-            *, 
-            management_teams(*)
-          `)
-          .eq('agent_id', data.id);
+        // Check if mobile number is part of any management teams by finding agents with same mobile
+        const { data: agentData, error: agentError } = await typedSupabase
+          .from(TABLES.AGENTS)
+          .select('id')
+          .eq('phone', userData.mobileNumber);
 
-        if (!teamError && teamData && teamData.length > 0) {
+        let teamData = [];
+        if (!agentError && agentData && agentData.length > 0) {
+          // Check if any of these agents are team members
+          const { data: teamMemberData, error: teamMemberError } = await typedSupabase
+            .from(TABLES.MANAGEMENT_TEAM_MEMBERS)
+            .select(`
+              *, 
+              management_teams(*)
+            `)
+            .in('agent_id', agentData.map(agent => agent.id));
+
+          if (!teamMemberError && teamMemberData) {
+            teamData = teamMemberData;
+          }
+        }
+
+        if (teamData.length > 0) {
           setUserTeams(teamData);
           setShowDashboardChoice(true);
         } else {

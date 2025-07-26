@@ -521,30 +521,33 @@ const TeamManagement = () => {
           
           <form onSubmit={handleMemberSubmit} className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="search-agent">Search Agent</Label>
-              <Input
-                id="search-agent"
-                value={searchAgent}
-                onChange={(e) => setSearchAgent(e.target.value)}
-                placeholder="Search agents by name..."
-              />
-            </div>
-
-            <div className="space-y-2">
               <Label htmlFor="existing-agent">Select Existing Agent</Label>
-              <div className="max-h-32 overflow-y-auto border rounded-md">
+              <div className="max-h-48 overflow-y-auto border rounded-md">
                 <Select value={selectedAgent} onValueChange={setSelectedAgent}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose an agent" />
+                    <SelectValue placeholder="Search and select an agent..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {agents
-                      .filter(agent => agent.name.toLowerCase().includes(searchAgent.toLowerCase()))
-                      .map((agent) => (
-                      <SelectItem key={agent.id} value={agent.id}>
-                        {agent.name} - {agent.role} ({agent.phone})
-                      </SelectItem>
-                    ))}
+                    <div className="p-2">
+                      <Input
+                        placeholder="Search by name or mobile..."
+                        value={searchAgent}
+                        onChange={(e) => setSearchAgent(e.target.value)}
+                        className="mb-2"
+                      />
+                    </div>
+                    <div className="max-h-40 overflow-y-auto">
+                      {agents
+                        .filter(agent => 
+                          agent.name.toLowerCase().includes(searchAgent.toLowerCase()) ||
+                          (agent.phone && agent.phone.includes(searchAgent))
+                        )
+                        .map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id}>
+                          {agent.name} - {agent.role} ({agent.phone || 'No phone'})
+                        </SelectItem>
+                      ))}
+                    </div>
                   </SelectContent>
                 </Select>
               </div>

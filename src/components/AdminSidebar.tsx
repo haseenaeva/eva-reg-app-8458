@@ -23,6 +23,7 @@ import {
   FileText,
   Bell
 } from "lucide-react";
+import { useAdminAuth } from "./AdminAuthProvider";
 
 const adminMenuItems = [
   { title: "Dashboard", url: "/admin/dashboard", icon: BarChart3 },
@@ -40,6 +41,21 @@ const adminMenuItems = [
 export function AdminSidebar() {
   const location = useLocation();
   const currentPath = location.pathname;
+  const { adminUser } = useAdminAuth();
+
+  // Super admin gets access to all features, others get restricted access
+  const getVisibleMenuItems = () => {
+    if (!adminUser) return [];
+    
+    if (adminUser.role === 'super_admin') {
+      return adminMenuItems; // Super admin sees everything
+    }
+    
+    // Other admin roles see limited features
+    return adminMenuItems.filter(item => 
+      !['permissions', 'settings'].some(restricted => item.url.includes(restricted))
+    );
+  };
 
   const isActive = (path: string) => currentPath === path;
 
@@ -54,7 +70,7 @@ export function AdminSidebar() {
 
           <SidebarGroupContent>
             <SidebarMenu>
-              {adminMenuItems.map((item) => (
+              {getVisibleMenuItems().map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <NavLink 
